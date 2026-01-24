@@ -31,10 +31,16 @@ const providerSchema = new mongoose.Schema(
       default: "provider",
       immutable: true, // 🔒 cannot be changed
     },
+    phone: {
+      type: String,
+      required: [true, "Phone number is required"],
+      match: [/^[0-9]{10,15}$/, "Phone number must be 10-15 digits"],
+      trim: true,
+    },
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected"],
-      default: "pending",
+      enum: ["	Pending", "Approved", "Rejected"],
+      default: "	Pending",
     },
   },
   {

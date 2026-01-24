@@ -2,7 +2,7 @@ import DecorationService from "../../models/Services/Stage&Decerations.js";
 
 export const AddDecorationService = async (req, res) => {
   try {
-    const { id, role } = req.user;
+    const { id, role } = req.provider; // set by auth middleware
 
     // 🔐 Only provider can add
     if (role !== "provider") {
@@ -18,24 +18,51 @@ export const AddDecorationService = async (req, res) => {
       location,
       phone,
       description,
-      packages, // sent as JSON string
+      packages, // JSON string
     } = req.body;
 
-    // ❌ Required check
+    /* ---------- Basic Validation ---------- */
     if (!companyName || !address || !location || !phone) {
       return res.status(400).json({
         success: false,
-        message: "Missing required fields",
+        message: "companyName, address, location and phone are required",
       });
     }
 
-    // ✅ Parse decorations array
-    let parsedDecorations = [];
-    if (packages) {
-      parsedDecorations = JSON.parse(packages);
+    const phoneRegex = /^[0-9]{10,15}$/;
+    if (!phoneRegex.test(phone)) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number must be 10–15 digits",
+      });
     }
 
-    // ❌ Decorations required
+    /* ---------- Prevent Duplicate Service (Recommended) ---------- */
+    const existingService = await DecorationService.findOne({
+      providerId: id,
+    });
+
+    if (existingService) {
+      return res.status(409).json({
+        success: false,
+        message: "You already added a decoration service",
+      });
+    }
+
+    /* ---------- Parse Packages ---------- */
+    let parsedDecorations = [];
+
+    if (packages) {
+      try {
+        parsedDecorations = JSON.parse(packages);
+      } catch (err) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid packages JSON format",
+        });
+      }
+    }
+
     if (!parsedDecorations.length) {
       return res.status(400).json({
         success: false,
@@ -43,15 +70,35 @@ export const AddDecorationService = async (req, res) => {
       });
     }
 
-    // ✅ Attach images to packages (order matters)
-    if (req.files && req.files.length > 0) {
-      parsedDecorations = parsedDecorations.map((pkg, index) => ({
-        ...pkg,
-        image: req.files[index]?.path || null,
-      }));
+    /* ---------- Validate Each Package ---------- */
+    for (const pkg of parsedDecorations) {
+      if (!pkg.title || !pkg.pricePerDay) {
+        return res.status(400).json({
+          success: false,
+          message: "Each package must have title and pricePerDay",
+        });
+      }
+
+      if (pkg.pricePerDay < 0) {
+        return res.status(400).json({
+          success: false,
+          message: "pricePerDay must be a positive number",
+        });
+      }
     }
 
-    // ✅ Create service
+    /* ---------- Images ---------- */
+    if (!req.files || !req.files.length) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one image is required",
+      });
+    }
+
+    // 👉 Store clean public paths
+     const imagePaths = req.files?.map((file) => file.path) || [];
+
+    /* ---------- Create Service ---------- */
     const service = await DecorationService.create({
       providerId: id,
       companyName,
@@ -60,6 +107,7 @@ export const AddDecorationService = async (req, res) => {
       phone,
       description,
       decorations: parsedDecorations,
+      images: imagePaths,
     });
 
     return res.status(201).json({
@@ -69,19 +117,20 @@ export const AddDecorationService = async (req, res) => {
     });
   } catch (error) {
     console.error("AddDecorationService error:", error);
+
     return res.status(500).json({
       success: false,
-      message: "Server error",
+      message: "Server error while adding decoration service",
       error: error.message,
     });
   }
 };
 
-
-
 export const fetchDecorationServices = async (req, res) => {
   try {
     const services = await DecorationService.find();
+
+    
 
     return res.status(200).json({
       success: true,
@@ -142,10 +191,13 @@ export const editDecorationService = async (req, res) => {
 
     const service = await DecorationService.findById(id);
     if (!service) {
-      return res.status(404).json({ success: false, message: "Service not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Service not found" });
     }
 
-    const { companyName, address, location, phone, description, packages } = req.body;
+    const { companyName, address, location, phone, description, packages } =
+      req.body;
 
     // Update only provided fields
     service.companyName = companyName ?? service.companyName;
@@ -158,7 +210,9 @@ export const editDecorationService = async (req, res) => {
     if (packages) {
       let parsedDecorations = [];
       try {
-        parsedDecorations = Array.isArray(packages) ? packages : JSON.parse(packages);
+        parsedDecorations = Array.isArray(packages)
+          ? packages
+          : JSON.parse(packages);
 
         // Attach images if uploaded
         if (req.files && req.files.length > 0) {
@@ -170,7 +224,9 @@ export const editDecorationService = async (req, res) => {
 
         service.decorations = parsedDecorations;
       } catch {
-        return res.status(400).json({ success: false, message: "Invalid packages format" });
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid packages format" });
       }
     }
 
@@ -210,7 +266,9 @@ export const deleteDecorationService = async (req, res) => {
 
     const service = await DecorationService.findById(id);
     if (!service) {
-      return res.status(404).json({ success: false, message: "Service not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Service not found" });
     }
 
     await DecorationService.findByIdAndDelete(id);

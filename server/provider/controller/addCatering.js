@@ -3,7 +3,7 @@ import CateringService from "../../models/Services/Catering&FoodsSchema.js";
 // Controller to add catering service
 export async function AddCateringService(req, res) {
   try {
-    const { role, id } = req.user; // From verifyToken middleware
+    const { role, id } =  req.provider // From verifyToken middleware
 
     // 🔐 Only provider can add
     if (role !== "provider") {

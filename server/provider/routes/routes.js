@@ -6,6 +6,7 @@ import {
   DeleteAuditorium,
   fetchAuditoriumById,
 } from "../controller/addAuditorium.js";
+import { protectProvider } from "../../middleware/ProtectProvider.js";
 import { verifyToken } from "../../middleware/verifyToken.js";
 import {
   AddCateringService,
@@ -35,7 +36,7 @@ const router = express.Router();
 //Auditoruim
 router.post(
   "/addAuditorium",
-  verifyToken,
+  protectProvider,
   upload.array("images", 10), // <--- MUST use .array("images") for multiple files
   AddAuditorium
 );
@@ -45,18 +46,18 @@ router.get("/fecthAuditorium/:id", verifyToken, fetchAuditoriumById);
 
 router.put(
   "/editAuditorium/:id",
-  verifyToken,
+  protectProvider,
   upload.array("images", 10),
   editAuditorium
 );
 
-router.delete("/delete-auditorium/:id", verifyToken, DeleteAuditorium);
+router.delete("/delete-auditorium/:id",protectProvider, DeleteAuditorium);
 
 //Catering
 
 router.post(
   "/addCatering",
-  verifyToken,
+  protectProvider,
   upload.array("images", 10), // <--- MUST use .array("images") for multiple files
   AddCateringService
 );
@@ -65,17 +66,17 @@ router.get("/fetchCatering/:id", verifyToken, fetchCateringById);
 
 router.put(
   "/editCatering/:id",
-  verifyToken,
+  protectProvider,
   upload.array("images", 10), // <--- MUST use .array("images") for multiple files
   editCatering
 );
-router.delete("/delete-catering/:id", verifyToken, DeleteCatering);
+router.delete("/delete-catering/:id", protectProvider, DeleteCatering);
 
 //Decoration And Stages
 
 router.post(
   "/addstage-decoration",
-  verifyToken,
+  protectProvider,
   upload.array("images", 10), // <--- MUST use .array("images") for multiple files
   AddDecorationService
 );
@@ -85,18 +86,18 @@ router.get("/fetchDeceration/:id", verifyToken, fetchDecorationServiceById);
 
 router.put(
   "/editDeceration/:id",
-  verifyToken,
+  protectProvider,
   upload.array("images", 10), // <--- MUST use .array("images") for multiple files
   editDecorationService
 );
 
-router.delete("/delete-deceration/:id", verifyToken, deleteDecorationService);
+router.delete("/delete-deceration/:id", protectProvider, deleteDecorationService);
 
 //Photography
 
 router.post(
   "/addPhotography",
-  verifyToken,
+  protectProvider,
   upload.array("images", 10), // <--- MUST use .array("images") for multiple files
   AddPhotographyService
 );
@@ -106,11 +107,11 @@ router.get("/fetchPhotography/:id", verifyToken, fetchPhotographyById);
 
 router.put(
   "/editPhotography/:id",
-  verifyToken,
+  protectProvider,
   upload.array("images", 10), // <--- MUST use .array("images") for multiple files
   editPhotographyService
 );
 
-router.delete("/delete-photography/:id", verifyToken, deletePhotographyService);
+router.delete("/delete-photography/:id", protectProvider, deletePhotographyService);
 
 export default router;

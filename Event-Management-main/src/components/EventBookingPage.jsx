@@ -153,6 +153,7 @@ const EventBookingPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-20 p-6">
+      
       {/* Header */}
       <div className="bg-white shadow-sm w-fit rounded-full">
         <div className="max-w-7xl mx-auto px-4 py-4">

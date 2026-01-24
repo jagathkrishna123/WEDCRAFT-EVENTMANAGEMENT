@@ -3,15 +3,14 @@ import User from "../../../models/user/userSchema.js";
 import Provider from "../../../models/provider/providerSchema.js";
 
 export async function signup(req, res) {
-
-  
   try {
-    const { name, email, password, role} = req.body;
-
+    const { name, email, password, role, phone } = req.body;
+    console.log(role,"role");
+    
     /* ---------- Validation ---------- */
-    if (!name || !email || !password || !role) {
+    if (!name || !email || !password || !role || !phone) {
       return res.status(400).json({
-        message: "Name, email, password, and role are required",
+        message: "Name, email, password, role, and phone are required",
       });
     }
 
@@ -28,11 +27,18 @@ export async function signup(req, res) {
       });
     }
 
-
-
     if (!["user", "provider"].includes(role)) {
       return res.status(400).json({
         message: "Invalid role",
+      });
+    }
+
+    // ✅ Phone validation
+    // Accepts only digits, 10-15 characters
+    const phoneRegex = /^[0-9]{10,15}$/;
+    if (!phoneRegex.test(phone)) {
+      return res.status(400).json({
+        message: "Invalid phone number. Must be 10-15 digits",
       });
     }
 
@@ -53,6 +59,7 @@ export async function signup(req, res) {
         email,
         password: hashedPassword,
         role: "user",
+        phone, // ✅ save phone
       });
 
       return res.status(201).json({
@@ -62,6 +69,7 @@ export async function signup(req, res) {
           name: user.name,
           email: user.email,
           role: user.role,
+          phone: user.phone,
         },
       });
     }
@@ -80,7 +88,7 @@ export async function signup(req, res) {
         email,
         password: hashedPassword,
         role: "provider",
-      
+        phone, // ✅ save phone
       });
 
       return res.status(201).json({
@@ -90,6 +98,7 @@ export async function signup(req, res) {
           name: provider.name,
           email: provider.email,
           role: provider.role,
+          phone: provider.phone,
         },
       });
     }
@@ -101,3 +110,4 @@ export async function signup(req, res) {
     });
   }
 }
+

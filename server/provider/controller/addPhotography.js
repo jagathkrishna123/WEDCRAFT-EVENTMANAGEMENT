@@ -2,7 +2,7 @@ import photographyPackageSchema from "../../models/Services/PhotographySchema.js
 
 export async function AddPhotographyService(req, res) {
   try {
-    const { role, id } = req.user;
+    const { role, id } =  req.provider
 
     // 🔐 Provider-only access
     if (role !== "provider") {
@@ -95,6 +95,8 @@ export async function AddPhotographyService(req, res) {
 export async function fetchPhotographyServices(req, res) {
   try {
     const services = await photographyPackageSchema.find();
+  
+    
 
     return res.status(200).json({
       success: true,

@@ -1,73 +1,69 @@
 import React, { useEffect, useState } from "react";
 import { IoSearch, IoSearchOutline } from "react-icons/io5";
+import axios from "axios";
 
 const ViewProviders = () => {
   const [providers, setProviders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  // Fetch all providers
-  // useEffect(() => {
-  //   const fetchProviders = async () => {
-  //     try {
-  //       const res = await fetch("http://localhost:5000/api/admin/providers");
-  //       const data = await res.json();
-  //       setProviders(data);
-  //     } catch (err) {
-  //       console.error("Error fetching providers", err);
-  //     }
-  //     setLoading(false);
-  //   };
+  useEffect(() => {
+    const fetchProviders = async () => {
+      try {
+        const token = localStorage.getItem("token"); // 🔐 admin token
 
-  //   fetchProviders();
-  // }, []);
-useEffect(() => {
-  const mockData = [
-    {
-      providerId: "PROV001",
-      name: "Rahul Kumar",
-      email: "rahul@example.com",
-      phone: "9876543210",
-      services: ["Auditorium", "Catering"],
-      status: "Pending",
-    },
-    {
-      providerId: "PROV002",
-      name: "Suresh Menon",
-      email: "suresh@example.com",
-      phone: "9845223344",
-      services: ["Photography"],
-      status: "Approved",
-    },
-    {
-      providerId: "PROV003",
-      name: "Maya Events",
-      email: "mayaevents@example.com",
-      phone: "9998887776",
-      services: ["Stage Decoration", "Catering", "Photography"],
-      status: "Rejected",
-    }
-  ];
+        const response = await axios.get(
+          "/viewProvidres",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // 👈 send token
+            },
+          }
+        );
+        console.log(response, "res");
 
-  setProviders(mockData);
-  setLoading(false);
-}, []);
+        // If your backend sends { success, data: [...] }
+        setProviders(response.data.data || response.data);
+      } catch (err) {
+        console.error(
+          "Error fetching providers",
+          err.response?.data || err.message
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProviders();
+  }, []);
 
   // Change provider status
   const updateStatus = async (providerId, status) => {
-    if (!window.confirm(`Are you sure you want to ${status} this provider?`)) return;
+    if (!window.confirm(`Are you sure you want to ${status} this provider?`))
+      return;
 
+    console.log(providerId,status,"dsasa");
+    
     try {
-      await fetch(`http://localhost:5000/api/admin/providers/${providerId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
+      const token = localStorage.getItem("token");
+      const id = providerId;
+ 
+
+      const response = await axios.put(
+        `/updateProviderStatus/${id}`,
+        { status },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // 👈 send token
+          },
+        }
+      );
 
       alert("Status updated!");
       setProviders(
         providers.map((p) =>
-          p.providerId === providerId ? { ...p, status } : p
+          p._id === id ? { ...p, status } : p
         )
       );
     } catch (err) {
@@ -77,42 +73,58 @@ useEffect(() => {
 
   const deleteProvider = async (providerId) => {
     if (!window.confirm("Delete this provider?")) return;
+    const id = providerId
+    console.log(id,"id");
+    
 
     try {
-      await fetch(`http://localhost:5000/api/admin/providers/${providerId}`, {
-        method: "DELETE",
-      });
+   const token = localStorage.getItem("token"); // 🔐 get your JWT token
+
+    const response = await axios.delete(
+      `/deleteProvider/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // 👈 send token
+        },
+      }
+    );
+
 
       alert("Provider deleted!");
-      setProviders(providers.filter((p) => p.providerId !== providerId));
+      setProviders(providers.filter((p) => p._id !== providerId));
     } catch (err) {
       alert("Error deleting provider");
     }
   };
 
   // Search filter
-  const filteredProviders = providers.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.services.join(" ").toLowerCase().includes(search.toLowerCase())
+  const filteredProviders = providers.filter(
+    (p) =>
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.services.join(" ").toLowerCase().includes(search.toLowerCase())
   );
+
+
 
   if (loading) return <p className="p-6">Loading providers...</p>;
 
   return (
     <div className="p-6 w-full">
-      <h2 className="text-3xl font-bold mb-6 text-gray-600">Manage Providers</h2>
+      <h2 className="text-3xl font-bold mb-6 text-gray-600">
+        Manage Providers
+      </h2>
 
       {/* Search */}
-      
+
       <div className="flex items-center border border-gray-400 p-3 rounded-xl w-full mb-6 max-w-[300px] text-gray-600 gap-2">
         <IoSearch />
-          <input
-        type="text"
-        placeholder="Search by name or service..."
-        className="text-gray-600 outline-none"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
+        <input
+          type="text"
+          placeholder="Search by name or service..."
+          className="text-gray-600 outline-none"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
 
       {/* Table */}
@@ -131,17 +143,20 @@ useEffect(() => {
           </thead>
 
           <tbody>
-            {filteredProviders.map((p, index) => (
-              <tr key={index} className="border-b border-gray-200 hover:bg-gray-50 text-sm">
-                <td className="p-3 text-gray-500">{p.providerId}</td>
+            {filteredProviders.map((p) => (
+              <tr
+                key={p._id}
+                className="border-b border-gray-200 hover:bg-gray-50 text-sm"
+              >
+                <td className="p-3 text-gray-500">{p._id}</td>
                 <td className="p-3 text-gray-500">{p.name}</td>
                 <td className="p-3 text-gray-500">{p.email}</td>
                 <td className="p-3 text-gray-500">{p.phone}</td>
 
                 <td className="p-3">
-                  {p.services.map((s, i) => (
+                  {p.services.map((s) => (
                     <span
-                      key={i}
+                      key={s._id}
                       className="bg-blue-100 text-blue-700 px-2 py-1 rounded-lg text-xs mr-1"
                     >
                       {s}
@@ -167,7 +182,7 @@ useEffect(() => {
                   {/* Approve */}
                   {p.status !== "Approved" && (
                     <button
-                      onClick={() => updateStatus(p.providerId, "Approved")}
+                      onClick={() => updateStatus(p._id, "Approved")}
                       className="text-green-600 hover:text-green-700 border border-gray-500 rounded-md px-1 text-xs"
                     >
                       Approve
@@ -177,7 +192,7 @@ useEffect(() => {
                   {/* Reject */}
                   {p.status !== "Rejected" && (
                     <button
-                      onClick={() => updateStatus(p.providerId, "Rejected")}
+                      onClick={() => updateStatus(p._id, "Rejected")}
                       className="text-red-600 hover:text-red-700 border border-gray-500 rounded-md px-1 text-xs"
                     >
                       Reject
@@ -186,7 +201,7 @@ useEffect(() => {
 
                   {/* Delete */}
                   <button
-                    onClick={() => deleteProvider(p.providerId)}
+                    onClick={() => deleteProvider(p._id)}
                     className="text-gray-600 hover:text-gray-700 border border-gray-500 rounded-md px-1 text-xs"
                   >
                     Delete

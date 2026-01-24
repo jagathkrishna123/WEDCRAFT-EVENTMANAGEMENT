@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const userSchema = new mongoose.Schema(
+const adminSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -22,31 +22,36 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: [true, "Password is required"],
-      minlength: [6, "Password must be at least 6 characters"],
-      select: false, // 🔐 hide password in queries
-    },
-
-    role: {
-      type: String,
-      default: "user",
-      required: true,
+      minlength: [2, "Password must be at least 2 characters"],
+      select: false, // 🔐 hide password by default
     },
 
     phone: {
       type: String,
       required: [true, "Phone number is required"],
-      match: [/^[0-9]{10,15}$/, "Phone number must be 10-15 digits"],
+      match: [/^[0-9]{10,15}$/, "Phone number must be 10–15 digits"],
       trim: true,
     },
 
-    // ✅ New Status Field
+    role: {
+      type: String,
+      enum: ["admin"],
+      default: "admin",
+      required: true,
+    },
 
+    status: {
+      type: String,
+      enum: ["active", "inactive", "blocked"],
+      default: "active",
+      required: true,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-const User = mongoose.model("User", userSchema);
+const Admin = mongoose.model("Admin", adminSchema);
 
-export default User;
+export default Admin;

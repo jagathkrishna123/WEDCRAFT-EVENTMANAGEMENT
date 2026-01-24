@@ -1,27 +1,40 @@
 import React, { useState, useEffect } from "react";
+
 import { BsDot } from "react-icons/bs";
 import { PiDotDuotone } from "react-icons/pi";
 import { Search } from 'lucide-react';
+import axios from "axios";
+
 
 const ManageUser = () => {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
 
 
-//   useEffect(() => {
-//   const fetchUsers = async () => {
-//     try {
-//       const res = await fetch("http://localhost:5000/api/admin/users");
-//       const data = await res.json();
-//       setUsers(data);
-//     } catch (err) {
-//       console.error("Error fetching users:", err);
-//     }
-//   };
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const token = localStorage.getItem("token"); // 🔐 get JWT token
 
-//   fetchUsers();
-// }, []);
+        const res = await axios.get(
+          "/viewUser",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // 👈 pass token to backend
+            },
+          }
+        );
+        console.log(res,"res");
+        
 
+        setUsers(res.data.data || []); // assuming backend sends { success, data: [...] }
+      } catch (err) {
+        console.error("Error fetching users:", err.response?.data || err.message);
+      }
+    };
+
+    fetchUsers();
+  }, []);
   useEffect(() => {
     // Temporary mock data so UI works
     const mockUsers = [
@@ -54,31 +67,39 @@ const ManageUser = () => {
     setUsers(mockUsers);
   }, []);
 
-  // Block / Unblock
-  const toggleBlock = (userId, currentStatus) => {
-    const newStatus = currentStatus === "Active" ? "Blocked" : "Active";
-    if (!window.confirm(`Are you sure you want to ${newStatus} this user?`)) return;
-
-    const updated = users.map((u) =>
-      u.userId === userId ? { ...u, status: newStatus } : u
-    );
-
-    setUsers(updated);
-
-    // TODO: Backend API
-    // fetch(`/api/admin/users/${userId}`, { method:"PUT", body: JSON.stringify({status:newStatus}) })
-  };
+ 
 
   // Delete user
-  const deleteUser = (userId) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
 
-    const updated = users.filter((u) => u.userId !== userId);
+const deleteUser = async (userId) => {
+  if (!window.confirm("Are you sure you want to delete this user?")) return;
+const id =userId
+  try {
+    const token = localStorage.getItem("token"); // 🔐 get JWT token
+
+    await axios.delete(
+      `/deleteUser/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // 👈 pass token to backend
+        },
+      }
+    );
+
+    // ✅ Update UI only after backend success
+    const updated = users.filter((u) => u._id !== userId);
     setUsers(updated);
 
-    // TODO: Backend API
-    // fetch(`/api/admin/users/${userId}`, { method: "DELETE" })
-  };
+    alert("User deleted successfully");
+  } catch (error) {
+    console.error(
+      "Error deleting user:",
+      error.response?.data || error.message
+    );
+    alert(error.response?.data?.message || "Failed to delete user");
+  }
+};
+
 
   // Search
   const filteredUsers = users.filter((u) =>
@@ -113,7 +134,7 @@ const ManageUser = () => {
               <th className="p-3 font-semibold">Email</th>
               <th className="p-3 font-semibold">Phone</th>
               <th className="p-3 font-semibold">Bookings</th>
-              <th className="p-3 font-semibold">Status</th>
+           
               <th className="p-3 font-semibold">Actions</th>
             </tr>
           </thead>
@@ -121,39 +142,22 @@ const ManageUser = () => {
           <tbody>
             {filteredUsers.map((u) => (
               <tr key={u.userId} className=" hover:bg-gray-50 text-sm text-gray-500">
-                <td className="p-3">{u.userId}</td>
+                <td className="p-3">{u._id}</td>
                 <td className="p-3">{u.name}</td>
                 <td className="p-3">{u.email}</td>
                 <td className="p-3">{u.phone}</td>
                 <td className="p-3">{u.totalBookings}</td>
 
-                <td className="p-3">
-                  <span
-                    className={`text-sm flex items-center ${
-                      u.status === "Active" ? "text-green-600" : "text-red-600"
-                    }`}
-                  ><PiDotDuotone className="text-[19px]" />
-                    {u.status}
-                  </span>
-                </td>
+       
 
                 {/* ACTIONS */}
                 <td className="p-3 flex gap-3">
-                  {/* Block/Unblock Button */}
-                  <button
-                    onClick={() => toggleBlock(u.userId, u.status)}
-                    className={`text-xs ${
-                      u.status === "Active"
-                        ? "text-red-600 bg-red-200 hover:text-red-700 border border-red-600 px-1 rounded-md p-1 cursor-pointer"
-                        : "text-green-600 bg-green-200 hover:text-green-700 border border-green-600 px-1 rounded-md p-1 cursor-pointer"
-                    }`}
-                  >
-                    {u.status === "Active" ? "Block" : "Unblock"}
-                  </button>
+
+          
 
                   {/* Delete Button */}
                   <button
-                    onClick={() => deleteUser(u.userId)}
+                    onClick={() => deleteUser(u._id)}
                     className=" rounded-md border border-gray-600 px-1 bg-gray-200 text-gray-700 text-xs p-1 cursor-pointer"
                   >
                     Delete

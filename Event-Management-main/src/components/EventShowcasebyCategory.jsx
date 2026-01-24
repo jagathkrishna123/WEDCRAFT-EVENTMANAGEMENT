@@ -16,6 +16,8 @@ import {
 import axios from "axios";
 
 const EventShowcasebyCategory = () => {
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
+
   const { category } = useParams();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
@@ -173,8 +175,8 @@ const EventShowcasebyCategory = () => {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm">
-              <IoPeopleOutline className="text-blue-500" />
-              <span>Capacity: {item.capacity}</span>
+              <IoPeopleOutline className="text-blue-500 " />
+              <span>Capacity: {item.capacity} </span>
             </div>
             <div className="flex items-center gap-2 text-sm">
               <IoSnowOutline className="text-cyan-500" />
@@ -414,7 +416,13 @@ const EventShowcasebyCategory = () => {
                 {/* Image Section */}
                 <div className="relative overflow-hidden">
                   <img
-                    src={item.images?.[0]}
+                    src={
+                      item.images?.[0]
+                        ? `${API_BASE_URL}/${item.images[0]
+                            .replace(/\\/g, "/")
+                            .replace("public/", "")}`
+                        : "/placeholder.jpg"
+                    }
                     alt={
                       item.auditoriumName || item.companyName || item.studioName
                     }

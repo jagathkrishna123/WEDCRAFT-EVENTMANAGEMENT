@@ -12,6 +12,7 @@ const CategorySection = () => {
 
   return (
     <div className="py-10 px-4 max-w-[1440px] mx-auto">
+      
       {/* <h2 className="text-2xl font-bold text-gray-800 mb-6">Our Services</h2> */}
       <Title
           title="Our Featured Services" 

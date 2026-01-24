@@ -9,6 +9,7 @@ import dotenv from "dotenv";
 import SignUp from "./User/routes/signUp.js";
 import Login from "./User/routes/login.js";
 import AddServicess from "./provider/routes/routes.js";
+import  ViewProviders  from "./Admin/routes/routes.js";
 
 dotenv.config(); // Load environment variables
 
@@ -43,6 +44,7 @@ app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 app.use("/api", SignUp);
 app.use("/api", Login);
 app.use("/api", AddServicess);
+app.use("/api", ViewProviders);
 
 /* ---------- Server ---------- */
 const PORT = process.env.PORT || 5000;

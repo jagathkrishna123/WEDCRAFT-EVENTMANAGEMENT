@@ -2,12 +2,16 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../../../models/user/userSchema.js";
 import Provider from "../../../models/provider/providerSchema.js";
+import Admin from "../../../models/Admin/adminSchema.js";
 
 export async function Login(req, res) {
   try {
    
     
     const { email, password } = req.body;
+
+    console.log(email,"ema" ,password);
+    
 
     /* ---------- Validation ---------- */
     if (!email || !password) {
@@ -19,7 +23,10 @@ export async function Login(req, res) {
     /* ---------- Check User ---------- */
     let account =
       (await User.findOne({ email }).select("+password")) ||
-      (await Provider.findOne({ email }).select("+password"));
+      (await Provider.findOne({ email }).select("+password"))||
+      (await Admin.findOne({ email }).select("+password"));
+console.log(account,"acc");
+    
 
     if (!account) {
       return res.status(404).json({

@@ -4,7 +4,7 @@ export async function AddAuditorium(req, res) {
   try {
     // 🔹 Get role and provider ID from authenticated user
 
-    const { role, id } = req.user;
+    const { role, id } =  req.provider
 
     // 🔐 Role check
     if (role !== "provider") {
