@@ -46,8 +46,6 @@ const EventShowcasebyCategory = () => {
           },
         });
 
-        console.log(res, "res");
-
         setItems(res.data.data); // adjust based on your response
       } catch (error) {
         console.error("Fetch error:", error);
@@ -63,13 +61,13 @@ const EventShowcasebyCategory = () => {
   // filter and sort services
   const filteredServices = useMemo(() => {
     let services = allServices.filter(
-      (service) => service.category === category
+      (service) => service.category === category,
     );
 
     // Apply search filter
     if (searchTerm) {
       services = services.filter((service) =>
-        service.location.toLowerCase().includes(searchTerm.toLowerCase())
+        service.location.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
@@ -83,10 +81,10 @@ const EventShowcasebyCategory = () => {
           priceB = b.pricePerDay || 0;
         } else if (category === "catering") {
           priceA = Math.min(
-            ...(a.packages?.map((p) => p.pricePerPerson) || [0])
+            ...(a.packages?.map((p) => p.pricePerPerson) || [0]),
           );
           priceB = Math.min(
-            ...(b.packages?.map((p) => p.pricePerPerson) || [0])
+            ...(b.packages?.map((p) => p.pricePerPerson) || [0]),
           );
         } else if (category === "photography") {
           priceA = Math.min(...(a.packages?.map((p) => p.pricePerHour) || [0]));
@@ -107,10 +105,10 @@ const EventShowcasebyCategory = () => {
           priceB = b.pricePerDay || 0;
         } else if (category === "catering") {
           priceA = Math.min(
-            ...(a.packages?.map((p) => p.pricePerPerson) || [0])
+            ...(a.packages?.map((p) => p.pricePerPerson) || [0]),
           );
           priceB = Math.min(
-            ...(b.packages?.map((p) => p.pricePerPerson) || [0])
+            ...(b.packages?.map((p) => p.pricePerPerson) || [0]),
           );
         } else if (category === "photography") {
           priceA = Math.min(...(a.packages?.map((p) => p.pricePerHour) || [0]));
@@ -260,8 +258,8 @@ const EventShowcasebyCategory = () => {
                 pkg.category === "Luxury"
                   ? "bg-yellow-50"
                   : pkg.category === "Premium"
-                  ? "bg-blue-50"
-                  : "bg-gray-50"
+                    ? "bg-blue-50"
+                    : "bg-gray-50"
               }`}
             >
               <div className="flex justify-between items-start">
@@ -275,8 +273,8 @@ const EventShowcasebyCategory = () => {
                       pkg.category === "Luxury"
                         ? "bg-yellow-100 text-yellow-700"
                         : pkg.category === "Premium"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-gray-100 text-gray-700"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-gray-100 text-gray-700"
                     }`}
                   >
                     {pkg.category}
@@ -401,7 +399,7 @@ const EventShowcasebyCategory = () => {
                   onClick={() => setSearchTerm("")}
                   className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
                 >
-                  Clear Search
+                  Clear Search  
                 </button>
               )}
             </div>
@@ -410,7 +408,7 @@ const EventShowcasebyCategory = () => {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {items.map((item) => (
               <div
-                key={item.id}
+                key={item._id}
                 className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group hover:-translate-y-1"
               >
                 {/* Image Section */}
@@ -463,10 +461,14 @@ const EventShowcasebyCategory = () => {
 
                   {/* Contact/Action Button */}
                   <button
-                    onClick={() => navigate(`/service/${category}/${item.id}`)}
+                    onClick={() => {
+                      if (item?._id) {
+                        navigate(`/service/${category}/${item._id}`);
+                      }
+                    }}
                     className={`w-full mt-4 bg-gradient-to-r ${categoryInfo.color} text-white py-3 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02]`}
                   >
-                    View Details & Book
+                    View Details & Books
                   </button>
                 </div>
               </div>

@@ -6,10 +6,11 @@ import axios from "axios";
 import "./index.css";
 import App from "./App.jsx";
 import { AppContextProvider } from "./context/AppContext.jsx";
+import { registerSW } from "virtual:pwa-register";
 
+registerSW();
 // ✅ AXIOS GLOBAL DEFAULTS (NO TOKEN)
-axios.defaults.baseURL = "http://localhost:5000/api";
-
+  axios.defaults.baseURL = "http://localhost:5000/api";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -18,5 +19,5 @@ createRoot(document.getElementById("root")).render(
         <App />
       </AppContextProvider>
     </BrowserRouter>
-  </StrictMode>
+  </StrictMode>,
 );

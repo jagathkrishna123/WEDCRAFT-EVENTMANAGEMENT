@@ -38,20 +38,20 @@ router.post(
   "/addAuditorium",
   protectProvider,
   upload.array("images", 10), // <--- MUST use .array("images") for multiple files
-  AddAuditorium
+  AddAuditorium,
 );
 
 router.get("/fecthAuditorium", verifyToken, fetchAuditorium);
-router.get("/fecthAuditorium/:id", verifyToken, fetchAuditoriumById);
+router.get("/auditorium/:id", verifyToken, fetchAuditoriumById);
 
 router.put(
   "/editAuditorium/:id",
   protectProvider,
   upload.array("images", 10),
-  editAuditorium
+  editAuditorium,
 );
 
-router.delete("/delete-auditorium/:id",protectProvider, DeleteAuditorium);
+router.delete("/delete-auditorium/:id", protectProvider, DeleteAuditorium);
 
 //Catering
 
@@ -59,16 +59,16 @@ router.post(
   "/addCatering",
   protectProvider,
   upload.array("images", 10), // <--- MUST use .array("images") for multiple files
-  AddCateringService
+  AddCateringService,
 );
 router.get("/fetchCatering", verifyToken, fetchCatering);
-router.get("/fetchCatering/:id", verifyToken, fetchCateringById);
+router.get("/catering/:id", verifyToken, fetchCateringById);
 
 router.put(
   "/editCatering/:id",
   protectProvider,
   upload.array("images", 10), // <--- MUST use .array("images") for multiple files
-  editCatering
+  editCatering,
 );
 router.delete("/delete-catering/:id", protectProvider, DeleteCatering);
 
@@ -78,20 +78,24 @@ router.post(
   "/addstage-decoration",
   protectProvider,
   upload.array("images", 10), // <--- MUST use .array("images") for multiple files
-  AddDecorationService
+  AddDecorationService,
 );
 
 router.get("/fetchDeceration", verifyToken, fetchDecorationServices);
-router.get("/fetchDeceration/:id", verifyToken, fetchDecorationServiceById);
+router.get("/stage-decoration/:id", verifyToken, fetchDecorationServiceById);
 
 router.put(
   "/editDeceration/:id",
   protectProvider,
   upload.array("images", 10), // <--- MUST use .array("images") for multiple files
-  editDecorationService
+  editDecorationService,
 );
 
-router.delete("/delete-deceration/:id", protectProvider, deleteDecorationService);
+router.delete(
+  "/delete-deceration/:id",
+  protectProvider,
+  deleteDecorationService,
+);
 
 //Photography
 
@@ -99,19 +103,23 @@ router.post(
   "/addPhotography",
   protectProvider,
   upload.array("images", 10), // <--- MUST use .array("images") for multiple files
-  AddPhotographyService
+  AddPhotographyService,
 );
 
 router.get("/fetchPhotography", verifyToken, fetchPhotographyServices);
-router.get("/fetchPhotography/:id", verifyToken, fetchPhotographyById);
+router.get("/photography/:id", verifyToken, fetchPhotographyById);
 
 router.put(
   "/editPhotography/:id",
   protectProvider,
   upload.array("images", 10), // <--- MUST use .array("images") for multiple files
-  editPhotographyService
+  editPhotographyService,
 );
 
-router.delete("/delete-photography/:id", protectProvider, deletePhotographyService);
+router.delete(
+  "/delete-photography/:id",
+  protectProvider,
+  deletePhotographyService,
+);
 
 export default router;

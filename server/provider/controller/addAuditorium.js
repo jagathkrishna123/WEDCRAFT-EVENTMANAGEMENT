@@ -97,9 +97,15 @@ export async function fetchAuditorium(req, res) {
 export async function fetchAuditoriumById(req, res) {
   try {
     const { id } = req.params;
+    console.log(id,"paramss");
+    console.log("krhwefdd");
+    
+    
 
     // Fetch auditorium by ID
     const auditorium = await AuditoriumSchema.findById(id);
+   
+    
 
     if (!auditorium) {
       return res.status(404).json({

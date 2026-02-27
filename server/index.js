@@ -10,7 +10,7 @@ import SignUp from "./User/routes/signUp.js";
 import Login from "./User/routes/login.js";
 import AddServicess from "./provider/routes/routes.js";
 import  ViewProviders  from "./Admin/routes/routes.js";
-
+import  createBooking  from "./User/routes/booking.js";
 dotenv.config(); // Load environment variables
 
 const app = express();
@@ -45,6 +45,7 @@ app.use("/api", SignUp);
 app.use("/api", Login);
 app.use("/api", AddServicess);
 app.use("/api", ViewProviders);
+app.use("/api", createBooking );
 
 /* ---------- Server ---------- */
 const PORT = process.env.PORT || 5000;

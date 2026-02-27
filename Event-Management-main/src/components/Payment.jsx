@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
 import {
   IoCardOutline,
   IoCashOutline,
@@ -15,20 +16,20 @@ import {
   IoLockClosedOutline,
   IoWalletOutline,
   IoBusinessOutline,
-  IoPhonePortraitOutline
-} from 'react-icons/io5';
+  IoPhonePortraitOutline,
+} from "react-icons/io5";
 
 const Payment = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [paymentMethod, setPaymentMethod] = useState("card");
   const [cardDetails, setCardDetails] = useState({
-    number: '',
-    expiry: '',
-    cvv: '',
-    name: ''
+    number: "",
+    expiry: "",
+    cvv: "",
+    name: "",
   });
-  const [upiId, setUpiId] = useState('');
+  const [upiId, setUpiId] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
@@ -37,7 +38,7 @@ const Payment = () => {
 
   useEffect(() => {
     if (!bookingDetails) {
-      navigate('/');
+      navigate("/");
       return;
     }
   }, [bookingDetails, navigate]);
@@ -46,38 +47,86 @@ const Payment = () => {
     e.preventDefault();
     setIsProcessing(true);
 
-    // Simulate payment processing
-    setTimeout(() => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.post(
+        "/createBooking", // change if needed
+        {
+          ...bookingDetails, // your booking data
+          paymentMethod: "card",
+          cardDetails: cardDetails, // from your state
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      console.log(response.data);
+
       setIsProcessing(false);
       setPaymentSuccess(true);
 
-      // Redirect to success page after 2 seconds
+      // Redirect after success
       setTimeout(() => {
-        navigate('/booking-success', { state: { bookingDetails } });
-      }, 2000);
-    }, 3000);
+        navigate("/booking-success", {
+          state: { booking: response.data.booking },
+        });
+      }, 1500);
+    } catch (error) {
+      console.error("Payment failed:", error.response?.data || error.message);
+      setIsProcessing(false);
+      alert(error.response?.data?.message || "Payment Failed");
+    }
   };
 
   const handleUPIPayment = async () => {
-    setIsProcessing(true);
+    try {
+      setIsProcessing(true);
 
-    // Simulate UPI payment processing
-    setTimeout(() => {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.post(
+        "/createBooking", // change if needed
+        {
+          ...bookingDetails,
+          paymentMethod: "upi",
+          upiId: upiId, // from your state
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
       setIsProcessing(false);
       setPaymentSuccess(true);
 
+      // Redirect after success
       setTimeout(() => {
-        navigate('/booking-success', { state: { bookingDetails } });
-      }, 2000);
-    }, 2000);
+        navigate("/booking-success", {
+          state: { booking: response.data.booking },
+        });
+      }, 1500);
+    } catch (error) {
+      console.error(
+        "UPI Payment failed:",
+        error.response?.data || error.message,
+      );
+      setIsProcessing(false);
+      alert(error.response?.data?.message || "UPI Payment Failed");
+    }
   };
 
   const paymentMethods = [
-    { id: 'card', name: 'Credit/Debit Card', icon: IoCardOutline },
-    { id: 'upi', name: 'UPI', icon: IoWalletOutline },
-    { id: 'netbanking', name: 'Net Banking', icon: IoBusinessOutline },
-    { id: 'wallet', name: 'Digital Wallet', icon: IoPhonePortraitOutline },
-    { id: 'cod', name: 'Cash on Booking', icon: IoCashOutline }
+    { id: "card", name: "Credit/Debit Card", icon: IoCardOutline },
+    { id: "upi", name: "UPI", icon: IoWalletOutline },
+    { id: "netbanking", name: "Net Banking", icon: IoBusinessOutline },
+    { id: "wallet", name: "Digital Wallet", icon: IoPhonePortraitOutline },
+    { id: "cod", name: "Cash on Booking", icon: IoCashOutline },
   ];
 
   if (!bookingDetails) {
@@ -98,8 +147,12 @@ const Payment = () => {
           <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
             <IoCheckmarkCircleOutline className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Payment Successful!</h2>
-          <p className="text-gray-600 mb-6">Your booking has been confirmed. Redirecting to confirmation page...</p>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            Payment Successful!
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Your booking has been confirmed. Redirecting to confirmation page...
+          </p>
           <div className="animate-pulse bg-gray-200 h-2 rounded-full">
             <div className="bg-green-500 h-2 rounded-full animate-pulse"></div>
           </div>
@@ -129,7 +182,9 @@ const Payment = () => {
           <div className="lg:col-span-2 space-y-6">
             {/* Payment Methods */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">Choose Payment Method</h2>
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                Choose Payment Method
+              </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 {paymentMethods.map((method) => {
@@ -140,8 +195,8 @@ const Payment = () => {
                       onClick={() => setPaymentMethod(method.id)}
                       className={`p-4 border-2 rounded-xl transition-all duration-200 flex items-center gap-3 ${
                         paymentMethod === method.id
-                          ? 'border-blue-500 bg-blue-50 text-blue-700'
-                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                          ? "border-blue-500 bg-blue-50 text-blue-700"
+                          : "border-gray-200 hover:border-gray-300 text-gray-700"
                       }`}
                     >
                       <IconComponent className="w-6 h-6" />
@@ -152,16 +207,23 @@ const Payment = () => {
               </div>
 
               {/* Payment Forms */}
-              {paymentMethod === 'card' && (
+              {paymentMethod === "card" && (
                 <form onSubmit={handleCardPayment} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Card Number</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Card Number
+                    </label>
                     <input
                       type="text"
                       required
                       placeholder="1234 5678 9012 3456"
                       value={cardDetails.number}
-                      onChange={(e) => setCardDetails({...cardDetails, number: e.target.value})}
+                      onChange={(e) =>
+                        setCardDetails({
+                          ...cardDetails,
+                          number: e.target.value,
+                        })
+                      }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       maxLength="19"
                     />
@@ -169,25 +231,39 @@ const Payment = () => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Expiry Date</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Expiry Date
+                      </label>
                       <input
                         type="text"
                         required
                         placeholder="MM/YY"
                         value={cardDetails.expiry}
-                        onChange={(e) => setCardDetails({...cardDetails, expiry: e.target.value})}
+                        onChange={(e) =>
+                          setCardDetails({
+                            ...cardDetails,
+                            expiry: e.target.value,
+                          })
+                        }
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         maxLength="5"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">CVV</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        CVV
+                      </label>
                       <input
                         type="text"
                         required
                         placeholder="123"
                         value={cardDetails.cvv}
-                        onChange={(e) => setCardDetails({...cardDetails, cvv: e.target.value})}
+                        onChange={(e) =>
+                          setCardDetails({
+                            ...cardDetails,
+                            cvv: e.target.value,
+                          })
+                        }
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         maxLength="4"
                       />
@@ -195,13 +271,17 @@ const Payment = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Cardholder Name</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Cardholder Name
+                    </label>
                     <input
                       type="text"
                       required
                       placeholder="John Doe"
                       value={cardDetails.name}
-                      onChange={(e) => setCardDetails({...cardDetails, name: e.target.value})}
+                      onChange={(e) =>
+                        setCardDetails({ ...cardDetails, name: e.target.value })
+                      }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
@@ -226,10 +306,12 @@ const Payment = () => {
                 </form>
               )}
 
-              {paymentMethod === 'upi' && (
+              {paymentMethod === "upi" && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">UPI ID</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      UPI ID
+                    </label>
                     <input
                       type="text"
                       required
@@ -241,7 +323,9 @@ const Payment = () => {
                   </div>
 
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm text-gray-600 mb-2">Popular UPI Apps:</p>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Popular UPI Apps:
+                    </p>
                     <div className="flex gap-2">
                       <button className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors">
                         GPay
@@ -278,15 +362,18 @@ const Payment = () => {
                 </div>
               )}
 
-              {paymentMethod === 'netbanking' && (
+              {paymentMethod === "netbanking" && (
                 <div className="space-y-4">
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <IoTimeOutline className="w-5 h-5 text-yellow-600" />
-                      <span className="font-semibold text-yellow-800">Net Banking</span>
+                      <span className="font-semibold text-yellow-800">
+                        Net Banking
+                      </span>
                     </div>
                     <p className="text-sm text-yellow-700">
-                      You will be redirected to your bank's website to complete the payment securely.
+                      You will be redirected to your bank's website to complete
+                      the payment securely.
                     </p>
                   </div>
 
@@ -310,42 +397,50 @@ const Payment = () => {
                 </div>
               )}
 
-              {paymentMethod === 'wallet' && (
+              {paymentMethod === "wallet" && (
                 <div className="space-y-4">
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <IoPhonePortraitOutline className="w-5 h-5 text-blue-600" />
-                      <span className="font-semibold text-blue-800">Digital Wallets</span>
+                      <span className="font-semibold text-blue-800">
+                        Digital Wallets
+                      </span>
                     </div>
                     <p className="text-sm text-blue-700">
-                      Choose from popular digital wallet options to pay securely.
+                      Choose from popular digital wallet options to pay
+                      securely.
                     </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    {['Paytm', 'Mobikwik', 'Airtel Money', 'JioMoney'].map((wallet) => (
-                      <button
-                        key={wallet}
-                        onClick={() => setIsProcessing(true)}
-                        disabled={isProcessing}
-                        className="p-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
-                      >
-                        {wallet}
-                      </button>
-                    ))}
+                    {["Paytm", "Mobikwik", "Airtel Money", "JioMoney"].map(
+                      (wallet) => (
+                        <button
+                          key={wallet}
+                          onClick={() => setIsProcessing(true)}
+                          disabled={isProcessing}
+                          className="p-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                        >
+                          {wallet}
+                        </button>
+                      ),
+                    )}
                   </div>
                 </div>
               )}
 
-              {paymentMethod === 'cod' && (
+              {paymentMethod === "cod" && (
                 <div className="space-y-4">
                   <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <IoCashOutline className="w-5 h-5 text-orange-600" />
-                      <span className="font-semibold text-orange-800">Cash on Booking</span>
+                      <span className="font-semibold text-orange-800">
+                        Cash on Booking
+                      </span>
                     </div>
                     <p className="text-sm text-orange-700">
-                      Pay in cash when the service provider arrives. Additional ₹500 convenience fee applies.
+                      Pay in cash when the service provider arrives. Additional
+                      ₹500 convenience fee applies.
                     </p>
                   </div>
 
@@ -356,7 +451,9 @@ const Payment = () => {
                         setIsProcessing(false);
                         setPaymentSuccess(true);
                         setTimeout(() => {
-                          navigate('/booking-success', { state: { bookingDetails } });
+                          navigate("/booking-success", {
+                            state: { bookingDetails },
+                          });
                         }, 2000);
                       }, 2000);
                     }}
@@ -371,7 +468,8 @@ const Payment = () => {
                     ) : (
                       <>
                         <IoCashOutline className="w-5 h-5" />
-                        Confirm Cash Payment - ₹{(bookingDetails.totalPrice + 500).toLocaleString()}
+                        Confirm Cash Payment - ₹
+                        {(bookingDetails.totalPrice + 500).toLocaleString()}
                       </>
                     )}
                   </button>
@@ -384,7 +482,9 @@ const Payment = () => {
           <div className="space-y-6">
             {/* Order Summary */}
             <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Order Summary</h2>
+              <h2 className="text-xl font-bold text-gray-800 mb-4">
+                Order Summary
+              </h2>
 
               <div className="space-y-4">
                 {/* Service Details */}
@@ -394,27 +494,45 @@ const Payment = () => {
                       <IoCardOutline className="w-6 h-6 text-blue-600" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-gray-800">{bookingDetails.serviceName}</h3>
-                      <p className="text-sm text-gray-600">{bookingDetails.category}</p>
+                      <h3 className="font-bold text-gray-800">
+                        {bookingDetails.serviceName}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        {bookingDetails.category}
+                      </p>
                     </div>
                   </div>
 
                   {bookingDetails.selectedPackage && (
                     <div className="ml-15">
-                      <p className="text-sm text-gray-600">Package: <span className="font-semibold">{bookingDetails.selectedPackage.packageName || bookingDetails.selectedPackage.name || bookingDetails.selectedPackage.title}</span></p>
+                      <p className="text-sm text-gray-600">
+                        Package:{" "}
+                        <span className="font-semibold">
+                          {bookingDetails.selectedPackage.packageName ||
+                            bookingDetails.selectedPackage.name ||
+                            bookingDetails.selectedPackage.title}
+                        </span>
+                      </p>
                     </div>
                   )}
 
                   {bookingDetails.auditoriumPricing && (
                     <div className="ml-15">
-                      <p className="text-sm text-gray-600">Pricing: <span className="font-semibold capitalize">{bookingDetails.auditoriumPricing}</span></p>
+                      <p className="text-sm text-gray-600">
+                        Pricing:{" "}
+                        <span className="font-semibold capitalize">
+                          {bookingDetails.auditoriumPricing}
+                        </span>
+                      </p>
                     </div>
                   )}
                 </div>
 
                 {/* Customer Details */}
                 <div className="pb-4 border-b border-gray-200">
-                  <h4 className="font-semibold text-gray-800 mb-3">Customer Details</h4>
+                  <h4 className="font-semibold text-gray-800 mb-3">
+                    Customer Details
+                  </h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
                       <IoPersonOutline className="w-4 h-4 text-gray-500" />
@@ -433,7 +551,9 @@ const Payment = () => {
 
                 {/* Event Details */}
                 <div className="pb-4 border-b border-gray-200">
-                  <h4 className="font-semibold text-gray-800 mb-3">Event Details</h4>
+                  <h4 className="font-semibold text-gray-800 mb-3">
+                    Event Details
+                  </h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
                       <IoCalendarOutline className="w-4 h-4 text-gray-500" />
@@ -441,21 +561,27 @@ const Payment = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <IoTimeOutline className="w-4 h-4 text-gray-500" />
-                      <span>{bookingDetails.bookingData.eventTime || 'TBD'}</span>
+                      <span>
+                        {bookingDetails.bookingData.eventTime || "TBD"}
+                      </span>
                     </div>
-                    {bookingDetails.bookingData.guests > 0 && bookingDetails.category !== 'auditorium' && (
-                      <div className="flex items-center gap-2">
-                        <IoPersonOutline className="w-4 h-4 text-gray-500" />
-                        <span>{bookingDetails.bookingData.guests} guests</span>
-                      </div>
-                    )}
+                    {bookingDetails.bookingData.guests > 0 &&
+                      bookingDetails.category !== "auditorium" && (
+                        <div className="flex items-center gap-2">
+                          <IoPersonOutline className="w-4 h-4 text-gray-500" />
+                          <span>
+                            {bookingDetails.bookingData.guests} guests
+                          </span>
+                        </div>
+                      )}
 
-                    {bookingDetails.category === 'auditorium' && bookingDetails.auditoriumPricing === 'hourly' && (
-                      <div className="flex items-center gap-2">
-                        <IoTimeOutline className="w-4 h-4 text-gray-500" />
-                        <span>{bookingDetails.bookingData.hours} hours</span>
-                      </div>
-                    )}
+                    {bookingDetails.category === "auditorium" &&
+                      bookingDetails.auditoriumPricing === "hourly" && (
+                        <div className="flex items-center gap-2">
+                          <IoTimeOutline className="w-4 h-4 text-gray-500" />
+                          <span>{bookingDetails.bookingData.hours} hours</span>
+                        </div>
+                      )}
                   </div>
                 </div>
 
@@ -463,9 +589,11 @@ const Payment = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between text-lg">
                     <span className="font-semibold">Total Amount:</span>
-                    <span className="font-bold text-green-600">₹{bookingDetails.totalPrice.toLocaleString()}</span>
+                    <span className="font-bold text-green-600">
+                      ₹{bookingDetails.totalPrice.toLocaleString()}
+                    </span>
                   </div>
-                  {paymentMethod === 'cod' && (
+                  {paymentMethod === "cod" && (
                     <div className="flex justify-between text-sm text-orange-600">
                       <span>Convenience Fee:</span>
                       <span>+₹500</span>
@@ -479,10 +607,13 @@ const Payment = () => {
             <div className="bg-green-50 border border-green-200 rounded-2xl p-4">
               <div className="flex items-center gap-2 mb-2">
                 <IoShieldCheckmarkOutline className="w-5 h-5 text-green-600" />
-                <span className="font-semibold text-green-800">Secure Payment</span>
+                <span className="font-semibold text-green-800">
+                  Secure Payment
+                </span>
               </div>
               <p className="text-sm text-green-700">
-                Your payment information is encrypted and secure. We use industry-standard security measures to protect your data.
+                Your payment information is encrypted and secure. We use
+                industry-standard security measures to protect your data.
               </p>
             </div>
           </div>

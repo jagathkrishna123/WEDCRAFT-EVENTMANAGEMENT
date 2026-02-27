@@ -4,6 +4,9 @@ export function verifyToken(req, res, next) {
   try {
     const authHeader = req.headers.authorization;
 
+   
+    
+
 
     // Check header
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -14,6 +17,8 @@ export function verifyToken(req, res, next) {
 
     // Extract token
     const token = authHeader.split(" ")[1];
+ 
+    
    
     
 

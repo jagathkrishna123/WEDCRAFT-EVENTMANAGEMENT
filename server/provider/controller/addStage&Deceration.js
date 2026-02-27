@@ -21,6 +21,9 @@ export const AddDecorationService = async (req, res) => {
       packages, // JSON string
     } = req.body;
 
+   
+    
+
     /* ---------- Basic Validation ---------- */
     if (!companyName || !address || !location || !phone) {
       return res.status(400).json({
@@ -38,16 +41,16 @@ export const AddDecorationService = async (req, res) => {
     }
 
     /* ---------- Prevent Duplicate Service (Recommended) ---------- */
-    const existingService = await DecorationService.findOne({
-      providerId: id,
-    });
+    // const existingService = await DecorationService.findOne({
+    //   providerId: id,
+    // });
 
-    if (existingService) {
-      return res.status(409).json({
-        success: false,
-        message: "You already added a decoration service",
-      });
-    }
+    // if (existingService) {
+    //   return res.status(409).json({
+    //     success: false,
+    //     message: "You already added a decoration service",
+    //   });
+    // }
 
     /* ---------- Parse Packages ---------- */
     let parsedDecorations = [];
@@ -149,6 +152,8 @@ export const fetchDecorationServices = async (req, res) => {
 export const fetchDecorationServiceById = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log(id,"audi");
+    
 
     // Fetch decoration service by ID
     const service = await DecorationService.findById(id);
