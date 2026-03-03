@@ -2,49 +2,58 @@
 
 import React, { useEffect, useState } from "react";
 import Loader from "../../components/Loader";
-
+import axios from "axios";
 const SettlementHistory = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalRevenue, setTotalRevenue] = useState(0);
 
   useEffect(() => {
-    // ---- MOCK DATA FOR UI ----
-    const mockData = [
-      {
-        bookingId: "BK1001",
-        customerName: "Rahul",
-        providerName: "Sky Photography",
-        serviceType: "Photography",
-        eventDate: "2025-12-01",
-        amount: 20000,
-        status: "Completed",
-      },
-      {
-        bookingId: "BK1002",
-        customerName: "Sneha",
-        providerName: "Dream Decor",
-        serviceType: "Decoration",
-        eventDate: "2025-11-20",
-        amount: 8000,
-        status: "Pending",
+    const fetchBookings = async () => {
+      try {
+        setLoading(true);
+
+        // Retrieve token from storage
+        const token = localStorage.getItem("token"); // or sessionStorage / cookie
+
+        const response = await axios.get("/getAllBookings", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        console.log(response, "response");
+
+
+        const data = response.data?.data; // adjust based on your API response shape
+        // e.g. if your API returns { bookings: [...] }, use response.data.bookings
+
+        setBookings(data);
+
+        // Calculate Total Revenue (Completed Only)
+        const revenue = data
+          .filter((b) => b.status === "confirmed")
+          .reduce((sum, b) => sum + b.totalPrice, 0);
+
+        setTotalRevenue(revenue);
+      } catch (error) {
+        console.error("Failed to fetch bookings:", error);
+
+        // Optional: handle 401 Unauthorized
+        if (error.response?.status === 401) {
+          // e.g. redirect to login
+          // navigate("/login");
+        }
+      } finally {
+        setLoading(false);
       }
-    ];
+    };
 
-    setBookings(mockData);
-
-    // Calculate Total Revenue (Completed Only)
-    const revenue = mockData
-      .filter((b) => b.status === "Completed")
-      .reduce((sum, b) => sum + b.amount, 0);
-
-    setTotalRevenue(revenue);
-
-    setLoading(false);
+    fetchBookings();
   }, []);
   // ---- END OF MOCK DATA ----
 
-  if (loading) return <Loader/>;
+  if (loading) return <Loader />;
 
   return (
     <div className="p-6 w-full">
@@ -73,24 +82,23 @@ const SettlementHistory = () => {
           <tbody>
             {bookings.map((b, i) => (
               <tr key={i} className=" hover:bg-gray-50 text-gray-600 text-sm">
-                <td className="p-3">{b.bookingId}</td>
+                <td className="p-3">{i + 1}</td>
                 <td className="p-3">{b.customerName}</td>
                 <td className="p-3">{b.providerName}</td>
-                <td className="p-3">{b.serviceType}</td>
-                <td className="p-3">{b.eventDate}</td>
-                <td className="p-3">₹{b.amount}</td>
+                <td className="p-3">{b.categoryModel}</td>
+                <td className="p-3">{new Date(b.eventDate).toLocaleDateString("en-IN")}</td>
+                <td className="p-3">₹{b.totalPrice}</td>
 
                 <td className="p-3">
                   <span
-                    className={`px-3 py-1 rounded-lg text-sm ${
-                      b.status === "Pending"
-                        ? "bg-yellow-200 text-yellow-600"
-                        : b.status === "Approved"
+                    className={`px-3 py-1 rounded-lg text-sm ${b.status === "Pending"
+                      ? "bg-yellow-200 text-yellow-600"
+                      : b.status === "Approved"
                         ? "bg-blue-600"
-                        : b.status === "Completed"
-                        ? "bg-green-200 text-green-600"
-                        : "bg-red-600"
-                    }`}
+                        : b.status === "confirmed"
+                          ? "bg-green-200 text-green-600"
+                          : "bg-red-600"
+                      }`}
                   >
                     {b.status}
                   </span>

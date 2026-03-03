@@ -39,8 +39,8 @@ const providerSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["	Pending", "Approved", "Rejected"],
-      default: "	Pending",
+      enum: ["Pending", "Approved", "Rejected"],
+      default: "Pending",
     },
   },
   {

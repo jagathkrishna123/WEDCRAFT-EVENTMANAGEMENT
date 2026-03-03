@@ -37,34 +37,34 @@ const ManageUser = () => {
   }, []);
   useEffect(() => {
     // Temporary mock data so UI works
-    const mockUsers = [
-      {
-        userId: "USER001",
-        name: "Rahul Kumar",
-        email: "rahul@gmail.com",
-        phone: "9876543210",
-        totalBookings: 5,
-        status: "Active",
-      },
-      {
-        userId: "USER002",
-        name: "Sneha Menon",
-        email: "sneha@gmail.com",
-        phone: "9845112233",
-        totalBookings: 2,
-        status: "Blocked",
-      },
-      {
-        userId: "USER003",
-        name: "Kiran",
-        email: "kiran@gmail.com",
-        phone: "9998887776",
-        totalBookings: 7,
-        status: "Active",
-      }
-    ];
+    // const mockUsers = [
+    //   {
+    //     userId: "USER001",
+    //     name: "Rahul Kumar",
+    //     email: "rahul@gmail.com",
+    //     phone: "9876543210",
+    //     totalBookings: 5,
+    //     status: "Active",
+    //   },
+    //   {
+    //     userId: "USER002",
+    //     name: "Sneha Menon",
+    //     email: "sneha@gmail.com",
+    //     phone: "9845112233",
+    //     totalBookings: 2,
+    //     status: "Blocked",
+    //   },
+    //   {
+    //     userId: "USER003",
+    //     name: "Kiran",
+    //     email: "kiran@gmail.com",
+    //     phone: "9998887776",
+    //     totalBookings: 7,
+    //     status: "Active",
+    //   }
+    // ];
 
-    setUsers(mockUsers);
+    // setUsers(mockUsers);
   }, []);
 
  
@@ -140,9 +140,9 @@ const id =userId
           </thead>
 
           <tbody>
-            {filteredUsers.map((u) => (
-              <tr key={u.userId} className=" hover:bg-gray-50 text-sm text-gray-500">
-                <td className="p-3">{u._id}</td>
+            {filteredUsers.map((u,i) => (
+              <tr key={u._id} className=" hover:bg-gray-50 text-sm text-gray-500">
+                <td className="p-3">{i+1}</td>
                 <td className="p-3">{u.name}</td>
                 <td className="p-3">{u.email}</td>
                 <td className="p-3">{u.phone}</td>

@@ -143,12 +143,12 @@ const ViewProviders = () => {
           </thead>
 
           <tbody>
-            {filteredProviders.map((p) => (
+            {filteredProviders.map((p,i) => (
               <tr
                 key={p._id}
                 className="border-b border-gray-200 hover:bg-gray-50 text-sm"
               >
-                <td className="p-3 text-gray-500">{p._id}</td>
+                <td className="p-3 text-gray-500">{i+1}</td>
                 <td className="p-3 text-gray-500">{p.name}</td>
                 <td className="p-3 text-gray-500">{p.email}</td>
                 <td className="p-3 text-gray-500">{p.phone}</td>

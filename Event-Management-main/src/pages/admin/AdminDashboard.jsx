@@ -23,7 +23,7 @@
 //     <div className='flex-1 p-4 md:p-10 bg-blue-50/50'>
 
 //       <div className='flex flex-wrap gap-4'>
-        
+
 //         {/* Total Users */}
 //         <div className='flex items-center gap-4 bg-white p-4 min-w-58 rounded shadow cursor-pointer hover:scale-105 transition-all'>
 //           <div>
@@ -100,17 +100,10 @@ import React, { useEffect, useState } from "react";
 import Loader from "../../components/Loader";
 import { ChevronsRight } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import axios from "axios";
 
 const AdminDashboard = () => {
-  const [dashboardData, setDashboardData] = useState({
-    totalUsers: 0,
-    totalProviders: 0,
-    totalBookings: 0,
-    totalRevenue: 0,
-    pendingProviders: 0,
-    pendingBookings: 0,
-    totalFeedback: 0,
-  });
+  const [dashboardData, setDashboardData] = useState([]);
 
   const [latestBookings, setLatestBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -118,37 +111,43 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        // Production: replace URL with your backend endpoint
-        const res = await fetch("http://localhost:5000/api/admin/dashboard");
-        if (!res.ok) throw new Error("No remote data");
-        const data = await res.json();
-        setDashboardData(data);
+        const token = localStorage.getItem("token"); // or wherever you store it
 
-        // try to fetch latest bookings (optional separate endpoint)
-        const lbRes = await fetch("http://localhost:5000/api/admin/latest-bookings");
-        if (lbRes.ok) {
-          const lb = await lbRes.json();
-          setLatestBookings(lb);
-        }
-      } catch (err) {
-        // Fallback mock data (UI-only) — remove when backend is ready
-        const mockDashboard = {
-          totalUsers: 145,
-          totalProviders: 22,
-          totalBookings: 312,
-          totalRevenue: 450000,
-          pendingProviders: 3,
-          pendingBookings: 12,
-          totalFeedback: 50,
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         };
-        const mockLatest = [
-          { id: "BK1001", customer: "Rahul", provider: "Sky Photography", serviceType: "Photography", date: "2025-12-01", status: "Completed", amount: 20000 },
-          { id: "BK1002", customer: "Sneha", provider: "Grand Palace Auditorium", serviceType: "Auditorium", date: "2025-11-20", status: "Pending", amount: 8000 },
-          { id: "BK1003", customer: "Kiran", provider: "Dream Decor", serviceType: "Decoration", date: "2025-11-15", status: "Completed", amount: 12000 }
-        ];
 
-        setDashboardData(mockDashboard);
-        setLatestBookings(mockLatest);
+        // Dashboard data
+        const res = await axios.get(
+          "/dashboardData",
+          config
+        );
+        console.log(res,"res111");
+        
+
+        setDashboardData(res.data);
+
+        // Latest bookings
+        const lbRes = await axios.get(
+          "/getAllBookings",
+          config
+        );
+
+        console.log(lbRes, "res1");
+
+
+        setLatestBookings(lbRes.data?.data);
+
+      } catch (err) {
+        console.error("Dashboard fetch error:", err.response?.data || err.message);
+
+        // Fallback mock data
+    
+
+ 
+        setLatestBookings([]); // safer fallback
       } finally {
         setLoading(false);
       }
@@ -157,29 +156,29 @@ const AdminDashboard = () => {
     fetchDashboard();
   }, []);
 
-  if (loading) return <Loader/>;
+  if (loading) return <Loader />;
 
   return (
     <div className="flex-1 p-4 md:p-10 bg-blue-50/50">
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-xl shadow hover:scale-105 transition">
-          <p className="text-2xl font-bold text-gray-700">{dashboardData.totalUsers}</p>
+          <p className="text-2xl font-bold text-gray-700">{dashboardData.users?.length ?? 0}</p>
           <p className="text-gray-500">Total Users</p>
         </div>
 
         <div className="bg-white p-5 rounded-xl shadow hover:scale-105 transition">
-          <p className="text-2xl font-bold text-gray-700">{dashboardData.totalProviders}</p>
+          <p className="text-2xl font-bold text-gray-700">{dashboardData.providers?.length ?? 0}</p>
           <p className="text-gray-500">Total Providers</p>
         </div>
 
         <div className="bg-white p-5 rounded-xl shadow hover:scale-105 transition">
-          <p className="text-2xl font-bold text-gray-700">{dashboardData.totalBookings}</p>
+          <p className="text-2xl font-bold text-gray-700">{dashboardData.bookings?.length ?? 0}</p>
           <p className="text-gray-500">Total Bookings</p>
         </div>
 
         <div className="bg-white p-5 rounded-xl shadow hover:scale-105 transition">
-          <p className="text-2xl font-bold text-green-600">₹{dashboardData.totalRevenue}</p>
+          <p className="text-2xl font-bold text-green-600">₹{dashboardData.bookings?.reduce((sum, booking) => sum + (booking.totalPrice || 0), 0) ?? 0}</p>
           <p className="text-gray-500">Total Revenue</p>
         </div>
       </div>
@@ -187,12 +186,12 @@ const AdminDashboard = () => {
       {/* Second Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
         <div className="bg-white p-5 rounded-xl shadow hover:scale-105 transition">
-          <p className="text-2xl font-bold text-yellow-600">{dashboardData.pendingProviders}</p>
+          <p className="text-2xl font-bold text-yellow-600">{dashboardData.providers?.filter(p => p.status === "Pending").length ?? 0}</p>
           <p className="text-gray-500">Pending Provider Approvals</p>
         </div>
 
         <div className="bg-white p-5 rounded-xl shadow hover:scale-105 transition">
-          <p className="text-2xl font-bold text-orange-600">{dashboardData.pendingBookings}</p>
+          <p className="text-2xl font-bold text-orange-600">{dashboardData.bookings?.filter(b => b.status === "Pending").length ?? 0}</p>
           <p className="text-gray-500">Pending Bookings</p>
         </div>
 
@@ -222,19 +221,19 @@ const AdminDashboard = () => {
             <tbody>
               {latestBookings.map((b, i) => (
                 <tr key={i} className="border-b border-gray-300 hover:bg-gray-50">
-                  <td className="p-3">{b.id}</td>
-                  <td className="p-3">{b.customer}</td>
-                  <td className="p-3">{b.provider}</td>
-                  <td className="p-3">{b.serviceType}</td>
-                  <td className="p-3">{b.date}</td>
-                  <td className="p-3">₹{b.amount ?? "-"}</td>
+                  <td className="p-3">{i + 1}</td>
+                  <td className="p-3">{b.customerName}</td>
+                  <td className="p-3">{b.providerName}</td>
+                  <td className="p-3">{b.categoryModel}</td>
+                  <td className="p-3">{new Date(b.eventDate).toISOString().split("T")[0]}</td>
+                  <td className="p-3">₹{b.totalPrice
+                    ?? "-"}</td>
                   <td className="p-3">
                     <span
-                      className={` ${
-                        b.status === "Completed" ? "bg-green-200 text-green-600 p-1 px-1 rounded-md" :
+                      className={` ${b.status === "Completed" ? "bg-green-200 text-green-600 p-1 px-1 rounded-md" :
                         b.status === "Pending" ? "bg-yellow-200 text-yellow-600 p-1 px-1 rounded-md" :
-                        "bg-blue-600"
-                      }`}
+                          "bg-blue-600"
+                        }`}
                     >
                       {b.status}
                     </span>
