@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Loader from "../../components/Loader";
+import axios from "axios";
+import { IoStar, IoTimeOutline, IoPersonOutline, IoBusinessOutline } from "react-icons/io5";
 
 const Review = () => {
   const [reviews, setReviews] = useState([]);
@@ -9,9 +11,13 @@ const Review = () => {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/reviews/provider");
-        const data = await res.json();
-        setReviews(data);
+        const token = localStorage.getItem("token");
+        const res = await axios.get("/reviews/provider", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.data.success) {
+          setReviews(res.data.reviews);
+        }
       } catch (err) {
         console.error("Error fetching reviews", err);
       }
@@ -21,7 +27,7 @@ const Review = () => {
     fetchReviews();
   }, []);
 
- if (loading) return <Loader />;
+  if (loading) return <Loader />;
 
   return (
     <div className="p-6">
@@ -30,56 +36,52 @@ const Review = () => {
       {reviews.length === 0 ? (
         <p className="text-gray-600">No reviews yet.</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {reviews.map((r, i) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {reviews.map((r) => (
             <div
-              key={i}
-              className="bg-white p-6 rounded-2xl shadow-md border hover:shadow-lg transition"
+              key={r._id}
+              className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300"
             >
-              {/* Customer Name */}
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-xl font-semibold">{r.customer.name}</h3>
-                <span className="text-sm text-gray-500">{r.createdAt}</span>
+              {/* Header: Customer and Date */}
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-cyan-100 rounded-full flex items-center justify-center text-cyan-600 font-bold">
+                    {r.customer?.name?.charAt(0) || "U"}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-800">{r.customer?.name || "Anonymous User"}</h3>
+                    <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
+                      <IoTimeOutline className="w-3 h-3" />
+                      <span>{new Date(r.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* Service Type */}
-              <p className="text-blue-600 font-medium text-sm mb-2">
-                Service: {r.serviceType}
-              </p>
+              {/* Service Info */}
+              <div className="flex items-center gap-2 mb-3 px-3 py-1.5 bg-gray-50 rounded-lg w-fit">
+                <IoBusinessOutline className="w-4 h-4 text-gray-500" />
+                <span className="text-sm font-medium text-gray-700 capitalize">
+                  {r.serviceName}
+                </span>
+              </div>
 
               {/* Rating */}
-              <div className="flex mb-3">
+              <div className="flex items-center gap-1 mb-3">
                 {Array.from({ length: 5 }).map((_, index) => (
-                  <span
+                  <IoStar
                     key={index}
-                    className={`text-xl ${
-                      index < Math.round(r.rating)
-                        ? "text-yellow-500"
-                        : "text-gray-300"
-                    }`}
-                  >
-                    ★
-                  </span>
+                    className={`text-lg ${index < r.rating ? "text-amber-400" : "text-gray-200"
+                      }`}
+                  />
                 ))}
-                <span className="ml-2 text-gray-600">{r.rating}/5</span>
+                <span className="ml-2 text-sm font-bold text-gray-700">{r.rating}/5</span>
               </div>
 
               {/* Comment */}
-              <p className="text-gray-700 mb-4">{r.comment}</p>
-
-              {/* Review Images */}
-              {r.images && r.images.length > 0 && (
-                <div className="grid grid-cols-3 gap-2">
-                  {r.images.map((img, idx) => (
-                    <img
-                      key={idx}
-                      src={img}
-                      alt="review"
-                      className="h-20 w-full object-cover rounded-lg shadow"
-                    />
-                  ))}
-                </div>
-              )}
+              <p className="text-gray-600 text-sm leading-relaxed italic">
+                "{r.comment}"
+              </p>
             </div>
           ))}
         </div>

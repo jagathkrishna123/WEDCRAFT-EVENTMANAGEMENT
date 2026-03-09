@@ -5,8 +5,8 @@ import Provider from "../../../models/provider/providerSchema.js";
 export async function signup(req, res) {
   try {
     const { name, email, password, role, phone } = req.body;
-    console.log(role,"role");
-    
+    console.log(role, "role");
+
     /* ---------- Validation ---------- */
     if (!name || !email || !password || !role || !phone) {
       return res.status(400).json({
@@ -92,7 +92,7 @@ export async function signup(req, res) {
       });
 
       return res.status(201).json({
-        message: "Provider signup successful",
+        message: "Provider signup successful. Please wait for admin approval to log in.",
         provider: {
           id: provider._id,
           name: provider.name,

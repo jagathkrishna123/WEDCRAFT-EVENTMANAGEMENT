@@ -98,7 +98,10 @@
 
 import React, { useEffect, useState } from "react";
 import Loader from "../../components/Loader";
-import { ChevronsRight } from "lucide-react";
+import {
+  ChevronsRight, Users, UserCheck, CalendarDays, IndianRupee,
+  Clock, ShieldAlert, MessageSquare, ArrowRight, Activity
+} from "lucide-react";
 import { NavLink } from "react-router-dom";
 import axios from "axios";
 
@@ -124,29 +127,23 @@ const AdminDashboard = () => {
           "/dashboardData",
           config
         );
-        console.log(res,"res111");
-        
+        console.log(res, "res111");
+
 
         setDashboardData(res.data);
 
-        // Latest bookings
-        const lbRes = await axios.get(
-          "/getAllBookings",
-          config
-        );
-
-        console.log(lbRes, "res1");
-
-
-        setLatestBookings(lbRes.data?.data);
+        // Derive latest bookings directly from the dashboard data
+        // Admin dashboard data returns bookings pre-sorted by createdAt descending
+        const bookingsData = res.data.bookings || [];
+        setLatestBookings(bookingsData.slice(0, 5));
 
       } catch (err) {
         console.error("Dashboard fetch error:", err.response?.data || err.message);
 
         // Fallback mock data
-    
 
- 
+
+
         setLatestBookings([]); // safer fallback
       } finally {
         setLoading(false);
@@ -161,87 +158,181 @@ const AdminDashboard = () => {
   return (
     <div className="flex-1 p-4 md:p-10 bg-blue-50/50">
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-xl shadow hover:scale-105 transition">
-          <p className="text-2xl font-bold text-gray-700">{dashboardData.users?.length ?? 0}</p>
-          <p className="text-gray-500">Total Users</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-gray-500 font-medium">Total Users</p>
+            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+              <Users size={20} />
+            </div>
+          </div>
+          <p className="text-3xl font-bold text-gray-800">{dashboardData.users?.length ?? 0}</p>
+          <p className="text-sm text-green-600 mt-2 flex items-center gap-1 font-medium"><Activity size={14} /> Active accounts</p>
         </div>
 
-        <div className="bg-white p-5 rounded-xl shadow hover:scale-105 transition">
-          <p className="text-2xl font-bold text-gray-700">{dashboardData.providers?.length ?? 0}</p>
-          <p className="text-gray-500">Total Providers</p>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-gray-500 font-medium">Total Providers</p>
+            <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
+              <UserCheck size={20} />
+            </div>
+          </div>
+          <p className="text-3xl font-bold text-gray-800">{dashboardData.providers?.length ?? 0}</p>
+          <p className="text-sm text-indigo-500 mt-2 flex items-center gap-1 font-medium"><Activity size={14} /> Registered services</p>
         </div>
 
-        <div className="bg-white p-5 rounded-xl shadow hover:scale-105 transition">
-          <p className="text-2xl font-bold text-gray-700">{dashboardData.bookings?.length ?? 0}</p>
-          <p className="text-gray-500">Total Bookings</p>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-gray-500 font-medium">Total Bookings</p>
+            <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-600">
+              <CalendarDays size={20} />
+            </div>
+          </div>
+          <p className="text-3xl font-bold text-gray-800">{dashboardData.bookings?.length ?? 0}</p>
+          <p className="text-sm text-orange-500 mt-2 flex items-center gap-1 font-medium"><Activity size={14} /> Platform orders</p>
         </div>
 
-        <div className="bg-white p-5 rounded-xl shadow hover:scale-105 transition">
-          <p className="text-2xl font-bold text-green-600">₹{dashboardData.bookings?.reduce((sum, booking) => sum + (booking.totalPrice || 0), 0) ?? 0}</p>
-          <p className="text-gray-500">Total Revenue</p>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-gray-500 font-medium">Total Revenue</p>
+            <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600">
+              <IndianRupee size={20} />
+            </div>
+          </div>
+          <p className="text-3xl font-bold text-gray-800">
+            ₹{dashboardData.bookings?.reduce((sum, booking) => sum + (booking.totalPrice || 0), 0)?.toLocaleString() ?? 0}
+          </p>
+          <p className="text-sm text-green-600 mt-2 flex items-center gap-1 font-medium"><Activity size={14} /> Platform growth</p>
         </div>
       </div>
 
       {/* Second Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-        <div className="bg-white p-5 rounded-xl shadow hover:scale-105 transition">
-          <p className="text-2xl font-bold text-yellow-600">{dashboardData.providers?.filter(p => p.status === "Pending").length ?? 0}</p>
-          <p className="text-gray-500">Pending Provider Approvals</p>
+      <h3 className="text-xl font-bold text-gray-800 tracking-tight mt-10 mb-5 pl-1">Action Center</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="bg-gradient-to-br from-yellow-50 to-amber-50 p-6 rounded-2xl shadow-sm border border-yellow-100 hover:shadow-md transition duration-300 relative overflow-hidden group">
+          <div className="flex justify-between items-start relative z-10">
+            <div>
+              <p className="text-yellow-800 font-semibold mb-1">Provider Approvals</p>
+              <p className="text-3xl font-bold text-yellow-600 mt-2">{dashboardData.providers?.filter(p => p.status === "Pending").length ?? 0}</p>
+            </div>
+            <div className="w-12 h-12 rounded-full bg-yellow-100/50 flex items-center justify-center text-yellow-600 group-hover:scale-110 transition-transform">
+              <ShieldAlert size={24} />
+            </div>
+          </div>
+          <div className="absolute -right-6 -bottom-6 opacity-10 transform rotate-12 group-hover:rotate-0 transition-transform duration-500 z-0">
+            <ShieldAlert size={100} />
+          </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl shadow hover:scale-105 transition">
-          <p className="text-2xl font-bold text-orange-600">{dashboardData.bookings?.filter(b => b.status === "Pending").length ?? 0}</p>
-          <p className="text-gray-500">Pending Bookings</p>
+        <div className="bg-gradient-to-br from-red-50 to-rose-50 p-6 rounded-2xl shadow-sm border border-red-100 hover:shadow-md transition duration-300 relative overflow-hidden group">
+          <div className="flex justify-between items-start relative z-10">
+            <div>
+              <p className="text-red-800 font-semibold mb-1">Pending Bookings</p>
+              <p className="text-3xl font-bold text-red-600 mt-2">{dashboardData.bookings?.filter(b => b.status === "Pending").length ?? 0}</p>
+            </div>
+            <div className="w-12 h-12 rounded-full bg-red-100/50 flex items-center justify-center text-red-600 group-hover:scale-110 transition-transform">
+              <Clock size={24} />
+            </div>
+          </div>
+          <div className="absolute -right-6 -bottom-6 opacity-10 transform -rotate-12 group-hover:rotate-0 transition-transform duration-500 z-0">
+            <Clock size={100} />
+          </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl shadow hover:scale-105 transition">
-          <p className="text-2xl font-bold text-blue-600">{dashboardData.totalFeedback}</p>
-          <p className="text-gray-500">Feedback Received</p>
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-2xl shadow-sm border border-blue-100 hover:shadow-md transition duration-300 relative overflow-hidden group">
+          <div className="flex justify-between items-start relative z-10">
+            <div>
+              <p className="text-blue-800 font-semibold mb-1">Feedback Received</p>
+              <p className="text-3xl font-bold text-blue-600 mt-2">{dashboardData.totalFeedback ?? 0}</p>
+            </div>
+            <div className="w-12 h-12 rounded-full bg-blue-100/50 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
+              <MessageSquare size={24} />
+            </div>
+          </div>
+          <div className="absolute -right-6 -bottom-6 opacity-10 transform rotate-12 group-hover:rotate-0 transition-transform duration-500 z-0">
+            <MessageSquare size={100} />
+          </div>
         </div>
       </div>
 
       {/* Latest Bookings */}
-      <div className="mt-10">
-        <h3 className="text-xl font-semibold mb-3 text-gray-700">Latest Bookings</h3>
+      <div className="mt-12 mb-6">
+        <div className="flex justify-between items-center mb-5 pl-1">
+          <h3 className="text-2xl font-bold text-gray-800 tracking-tight">Latest Bookings</h3>
+          <NavLink to="/admin/settlement-history" className="text-sm font-medium text-cyan-600 hover:text-cyan-700 hover:underline transition-colors flex items-center gap-1">
+            View All <ChevronsRight className="w-4 h-4" />
+          </NavLink>
+        </div>
 
-        <div className="overflow-x-auto shadow rounded-xl bg-white">
-          <table className="w-full text-sm text-gray-600">
-            <thead className="bg-gray-100">
+        <div className="overflow-x-auto shadow-sm shadow-gray-200/50 rounded-2xl bg-white border border-gray-100">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-gray-50 border-b border-gray-100 text-gray-500 uppercase text-xs font-bold tracking-wider">
               <tr>
-                <th className="p-3">Booking ID</th>
-                <th className="p-3">Customer</th>
-                <th className="p-3">Provider</th>
-                <th className="p-3">Service</th>
-                <th className="p-3">Date</th>
-                <th className="p-3">Amount</th>
-                <th className="p-3">Status</th>
+                <th className="px-6 py-4 rounded-tl-2xl">Booking ID</th>
+                <th className="px-6 py-4">Customer</th>
+                <th className="px-6 py-4">Provider / Service</th>
+                <th className="px-6 py-4">Event Date</th>
+                <th className="px-6 py-4">Amount</th>
+                <th className="px-6 py-4 rounded-tr-2xl">Status</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-50 text-gray-700">
               {latestBookings.map((b, i) => (
-                <tr key={i} className="border-b border-gray-300 hover:bg-gray-50">
-                  <td className="p-3">{i + 1}</td>
-                  <td className="p-3">{b.customerName}</td>
-                  <td className="p-3">{b.providerName}</td>
-                  <td className="p-3">{b.categoryModel}</td>
-                  <td className="p-3">{new Date(b.eventDate).toISOString().split("T")[0]}</td>
-                  <td className="p-3">₹{b.totalPrice
-                    ?? "-"}</td>
-                  <td className="p-3">
+                <tr key={i} className="hover:bg-blue-50/30 transition duration-200 ease-in-out">
+                  <td className="px-6 py-4 font-mono text-xs text-gray-400">
+                    #{b._id ? b._id.slice(-6).toUpperCase() : `ID-${i + 1}`}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 font-semibold rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-blue-700 border border-blue-300 shadow-sm">
+                        {b.customerName ? b.customerName.charAt(0).toUpperCase() : "?"}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-800">{b.customerName || "Unknown"}</p>
+                        <p className="text-xs text-gray-500">{b.phone || "No phone"}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <p className="font-medium text-gray-800">{b.providerName || "N/A"}</p>
+                    <p className="text-xs text-gray-500 max-w-[180px] truncate">{b.categoryModel || "Unknown"} - {b.serviceName || "Service"}</p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <p className="font-medium text-gray-800">
+                      {b.eventDate ? new Date(b.eventDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "-"}
+                    </p>
+                    <p className="text-xs text-gray-500">{b.eventTime || "Time not set"}</p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="font-semibold text-gray-800">₹{b.totalPrice ?? "-"}</span>
+                  </td>
+                  <td className="px-6 py-4">
                     <span
-                      className={` ${b.status === "Completed" ? "bg-green-200 text-green-600 p-1 px-1 rounded-md" :
-                        b.status === "Pending" ? "bg-yellow-200 text-yellow-600 p-1 px-1 rounded-md" :
-                          "bg-blue-600"
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border shadow-sm ${(b.status || "").toLowerCase() === "completed" || (b.status || "").toLowerCase() === "confirmed"
+                        ? "bg-green-50 text-green-700 border-green-200"
+                        : (b.status || "").toLowerCase() === "pending"
+                          ? "bg-yellow-50 text-yellow-700 border-yellow-200"
+                          : "bg-red-50 text-red-700 border-red-200"
                         }`}
                     >
-                      {b.status}
+                      <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${(b.status || "").toLowerCase() === "completed" || (b.status || "").toLowerCase() === "confirmed" ? "bg-green-500" :
+                        (b.status || "").toLowerCase() === "pending" ? "bg-yellow-500" : "bg-red-500"
+                        }`}></span>
+                      {b.status ? b.status.charAt(0).toUpperCase() + b.status.slice(1) : "Unknown"}
                     </span>
                   </td>
                 </tr>
               ))}
               {latestBookings.length === 0 && (
-                <tr><td colSpan={7} className="p-4 text-center text-gray-500">No recent bookings</td></tr>
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center text-gray-400">
+                      <svg className="w-12 h-12 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                      <p className="text-lg font-medium text-gray-600">No recent bookings</p>
+                      <p className="text-sm mt-1">New bookings will appear here once users make a reservation.</p>
+                    </div>
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
@@ -249,10 +340,31 @@ const AdminDashboard = () => {
       </div>
 
       {/* Quick Links */}
-      <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <NavLink to="/admin/add-provider" className="bg-cyan-700 hover:bg-cyan-800 transition-all duration-500 shadow-md p-4 rounded-xl hover:shadow-md text-gray-100 max-w-[300px] flex justify-between">Manage Providers <ChevronsRight /></NavLink>
-        <NavLink to="/admin/manage-user" className="bg-cyan-700 hover:bg-cyan-800 transition-all duration-500 shadow-md p-4 rounded-xl hover:shadow-md text-gray-100 max-w-[300px] flex justify-between">Manage Users <ChevronsRight /></NavLink>
-        <NavLink to="/admin/settlement-history" className="bg-cyan-700 hover:bg-cyan-800 transition-all duration-500 shadow-md p-4 rounded-xl hover:shadow-md text-gray-100 max-w-[300px] flex justify-between">All Bookings <ChevronsRight /></NavLink>
+      <h3 className="text-xl font-bold text-gray-800 tracking-tight mt-10 mb-5 pl-1">Quick Links</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pb-10">
+        <NavLink to="/admin/add-provider" className="group bg-white hover:bg-cyan-50 border border-gray-100 transition-all duration-300 shadow-sm p-5 rounded-2xl hover:shadow-md flex justify-between items-center w-full">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center group-hover:bg-cyan-600 group-hover:text-white transition-colors"><UserCheck size={20} /></div>
+            <span className="font-semibold text-gray-700 group-hover:text-cyan-800 transition-colors">Manage Providers</span>
+          </div>
+          <ArrowRight className="text-gray-300 group-hover:text-cyan-600 transition-colors group-hover:translate-x-1 duration-300" size={20} />
+        </NavLink>
+
+        <NavLink to="/admin/manage-user" className="group bg-white hover:bg-cyan-50 border border-gray-100 transition-all duration-300 shadow-sm p-5 rounded-2xl hover:shadow-md flex justify-between items-center w-full">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center group-hover:bg-cyan-600 group-hover:text-white transition-colors"><Users size={20} /></div>
+            <span className="font-semibold text-gray-700 group-hover:text-cyan-800 transition-colors">Manage Users</span>
+          </div>
+          <ArrowRight className="text-gray-300 group-hover:text-cyan-600 transition-colors group-hover:translate-x-1 duration-300" size={20} />
+        </NavLink>
+
+        <NavLink to="/admin/settlement-history" className="group bg-white hover:bg-cyan-50 border border-gray-100 transition-all duration-300 shadow-sm p-5 rounded-2xl hover:shadow-md flex justify-between items-center w-full">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center group-hover:bg-cyan-600 group-hover:text-white transition-colors"><CalendarDays size={20} /></div>
+            <span className="font-semibold text-gray-700 group-hover:text-cyan-800 transition-colors">All Bookings</span>
+          </div>
+          <ArrowRight className="text-gray-300 group-hover:text-cyan-600 transition-colors group-hover:translate-x-1 duration-300" size={20} />
+        </NavLink>
       </div>
     </div>
   );

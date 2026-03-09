@@ -297,11 +297,11 @@ const BookingSuccess = () => {
       <div className="max-w-4xl mx-auto px-4 py-12 pt-20">
         {/* Success Message */}
         <div className="text-center mb-12">
-          <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-            <IoCheckmarkCircleOutline className="w-12 h-12 text-white" />
+          <div className="md:w-24 md:h-24 w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <IoCheckmarkCircleOutline className="md:w-12 md:h-12 w-8 h-8 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">Booking Successful!</h1>
-          <p className="text-xl text-gray-600 mb-2">Your booking has been confirmed</p>
+          <h1 className="md:text-4xl text-2xl font-bold text-gray-800 mb-4">Booking Successful!</h1>
+          <p className="md:text-xl text-lg text-gray-600 mb-2">Your booking has been confirmed</p>
           <p className="text-gray-500">A confirmation email has been sent to {bookingDetails.bookingData.email}</p>
         </div>
 

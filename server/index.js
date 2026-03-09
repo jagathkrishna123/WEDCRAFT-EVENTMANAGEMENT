@@ -11,6 +11,7 @@ import Login from "./User/routes/login.js";
 import AddServicess from "./provider/routes/routes.js";
 import ViewProviders from "./Admin/routes/routes.js";
 import createBooking from "./User/routes/booking.js";
+import reviewRoutes from "./User/routes/review.js";
 dotenv.config(); // Load environment variables
 
 const app = express();
@@ -19,8 +20,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /* ---------- MongoDB Connection ---------- */
-const MONGO_URI = process.env.MONGODB_URL ||"mongodb+srv://shamiltp000003_db_user:qLhQ0rqT1btffVnc@cluster0.wgdxc0a.mongodb.net/?appName=Cluster0" ;
-console.log(MONGO_URI,"mongo");
+const MONGO_URI = process.env.MONGODB_URL || "mongodb+srv://shamiltp000003_db_user:qLhQ0rqT1btffVnc@cluster0.wgdxc0a.mongodb.net/?appName=Cluster0";
+console.log(MONGO_URI, "mongo");
 
 
 
@@ -49,6 +50,7 @@ app.use("/api", Login);
 app.use("/api", AddServicess);
 app.use("/api", ViewProviders);
 app.use("/api", createBooking);
+app.use("/api", reviewRoutes);
 
 /* ---------- Server ---------- */
 const PORT = process.env.PORT || 5000;

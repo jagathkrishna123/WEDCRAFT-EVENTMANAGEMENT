@@ -9,6 +9,7 @@ export const createBooking = async (req, res) => {
     const {
       serviceId,
       providerId,
+      serviceName,
       selectedPackage,
       bookingData,
       totalPrice,
@@ -29,8 +30,8 @@ export const createBooking = async (req, res) => {
     }
     // 🔥 Fetch provider from Provider collection
     const providerData = await Provider.findById(providerId);
-    console.log(providerData,"provider data");
-    
+    console.log(providerData, "provider data");
+
 
     if (!providerData) {
       return res.status(404).json({ message: "Provider not found" });
@@ -59,10 +60,29 @@ export const createBooking = async (req, res) => {
       !eventTime ||
       !category ||
       !serviceId ||
+      !serviceName ||
       !totalPrice ||
       !paymentMethod
     ) {
       return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // ✅ Check for duplicate booking (prevent same service on same day)
+    const date = new Date(eventDate);
+    const startOfDay = new Date(date.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(date.setHours(23, 59, 59, 999));
+
+    const existingBooking = await Booking.findOne({
+      service: serviceId,
+      eventDate: {
+        $gte: startOfDay,
+        $lte: endOfDay,
+      },
+      status: { $in: ["confirmed", "completed"] },
+    });
+
+    if (existingBooking) {
+      return res.status(400).json({ message: "This service is already booked for the selected date." });
     }
 
     // ✅ Set categoryModel automatically
@@ -104,6 +124,7 @@ export const createBooking = async (req, res) => {
       provider: providerId,
       providerName,
       service: serviceId,
+      serviceName,
       categoryModel,
       selectedPackage,
       auditoriumPricing,
@@ -143,15 +164,60 @@ export const createBooking = async (req, res) => {
     });
   }
 };
+
+// ---------- Check Availability ----------
+export const checkAvailability = async (req, res) => {
+  try {
+    const { serviceId, eventDate } = req.params;
+
+    if (!serviceId || !eventDate) {
+      return res.status(400).json({ message: "Missing serviceId or eventDate" });
+    }
+
+    // Convert date string to Date object (start and end of day)
+    const date = new Date(eventDate);
+    const startOfDay = new Date(date.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(date.setHours(23, 59, 59, 999));
+
+    // Check if there are any confirmed or completed bookings for this service on this date
+    const existingBooking = await Booking.findOne({
+      service: serviceId,
+      eventDate: {
+        $gte: startOfDay,
+        $lte: endOfDay,
+      },
+      status: { $in: ["confirmed", "completed"] },
+    });
+
+    if (existingBooking) {
+      return res.status(200).json({
+        available: false,
+        message: "This date is already booked for this service.",
+      });
+    }
+
+    return res.status(200).json({
+      available: true,
+      message: "Date is available.",
+    });
+  } catch (error) {
+    console.error("Error checking availability:", error);
+    return res.status(500).json({
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
 // ---------- Get all bookings ----------
 export const getAllBookings = async (req, res) => {
   console.log("Fetching data");
 
   try {
-    const bookings = await Booking.find()
+    // Filter by customer ID (req.user.id is set by verifyToken middleware)
+    const bookings = await Booking.find({ customer: req.user.id })
       .sort({ createdAt: -1 }); // -1 = descending
 
-    res.status(200).json({ data: bookings });
+    res.status(200).json({ success: true, data: bookings });
   } catch (error) {
     console.error("Error fetching bookings:", error);
     res.status(500).json({ message: "Server error", error: error.message });

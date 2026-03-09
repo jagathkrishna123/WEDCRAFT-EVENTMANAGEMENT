@@ -73,6 +73,11 @@ const auditoriumSchema = new mongoose.Schema(
         type: String,
       },
     ],
+    category: {
+      type: String,
+      required: true,
+      default: "auditorium",
+    },
   },
   {
     timestamps: true,

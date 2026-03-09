@@ -1,4 +1,5 @@
 import User from "../../models/user/userSchema.js";
+import Booking from "../../models/Booking/bookingSchema.js";
 
 export const ViewUser = async (req, res) => {
   try {
@@ -13,10 +14,22 @@ export const ViewUser = async (req, res) => {
       });
     }
 
+    // Fetch booking counts for all users using Promise.all
+    const enrichedUsers = await Promise.all(
+      users.map(async (user) => {
+        // const bookingsCount = await Booking.countDocuments({ userId: user._id }); this line change to line below
+        const bookingsCount = await Booking.countDocuments({ customer: user._id });
+        return {
+          ...user.toObject(),
+          totalBookings: bookingsCount,
+        };
+      })
+    );
+
     res.status(200).json({
       success: true,
-      count: users.length,
-      data: users,
+      count: enrichedUsers.length,
+      data: enrichedUsers,
     });
   } catch (error) {
     console.error("Error fetching users:", error);
@@ -31,10 +44,10 @@ export const ViewUser = async (req, res) => {
 
 export const deleteUser = async (req, res) => {
   try {
-     
+
     const { id } = req.params;
- 
-    
+
+
 
     // 🔎 Validate ID format
     if (!id) {

@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
-import { HiQuestionMarkCircle } from "react-icons/hi";
+import { HiQuestionMarkCircle, HiOutlineSupport } from "react-icons/hi";
+import { BiSearchAlt } from "react-icons/bi";
+import { FiHelpCircle } from "react-icons/fi";
 
 const FAQ = () => {
   const [openIndex, setOpenIndex] = useState(null);
@@ -61,61 +63,146 @@ const FAQ = () => {
   };
 
   return (
-    <div className="p-6 md:p-8 lg:p-12 bg-gray-50 min-h-full w-full">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <HiQuestionMarkCircle className="text-4xl text-cyan-600" />
-            <h1 className="text-3xl font-bold text-gray-800">Frequently Asked Questions</h1>
+    <div className="w-full min-h-screen bg-gradient-to-br from-gray-50 to-emerald-50/30">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header Section */}
+        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-8 mb-8 border border-emerald-100 shadow-sm">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-md">
+              <HiQuestionMarkCircle className="text-4xl text-emerald-600" />
+            </div>
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
+                Frequently Asked Questions
+              </h1>
+              <p className="text-gray-600 mt-2 text-base md:text-lg">
+                Find answers to common questions about managing your services and bookings
+              </p>
+            </div>
           </div>
-          <p className="text-gray-600 text-lg">
-            Find answers to common questions about managing your services and bookings
-          </p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Total FAQs</p>
+                <p className="text-2xl font-bold text-gray-800">{faqs.length}</p>
+              </div>
+              <div className="w-12 h-12 bg-emerald-50 rounded-lg flex items-center justify-center">
+                <FiHelpCircle className="text-xl text-emerald-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Categories</p>
+                <p className="text-2xl font-bold text-gray-800">6</p>
+              </div>
+              <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
+                <BiSearchAlt className="text-xl text-blue-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">24/7 Support</p>
+                <p className="text-2xl font-bold text-gray-800">✓</p>
+              </div>
+              <div className="w-12 h-12 bg-teal-50 rounded-lg flex items-center justify-center">
+                <HiOutlineSupport className="text-xl text-teal-600" />
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* FAQ List */}
-        <div className="space-y-4">
+        <div className="space-y-3 mb-8">
           {faqs.map((faq, index) => (
             <div
               key={index}
-              className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-lg"
+              className={`bg-white rounded-xl border-2 overflow-hidden transition-all duration-300 ${
+                openIndex === index
+                  ? "border-emerald-300 shadow-lg shadow-emerald-100"
+                  : "border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300"
+              }`}
             >
               <button
                 onClick={() => toggleFAQ(index)}
-                className="w-full px-6 py-5 flex items-center justify-between text-left focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-inset"
+                className="w-full px-6 py-5 flex items-center justify-between text-left focus:outline-none group"
               >
-                <span className="text-lg font-semibold text-gray-800 pr-4 flex-1">
-                  {faq.question}
-                </span>
-                <div className="flex-shrink-0">
-                  {openIndex === index ? (
-                    <IoIosArrowUp className="text-2xl text-cyan-600" />
-                  ) : (
-                    <IoIosArrowDown className="text-2xl text-gray-400" />
-                  )}
+                <div className="flex items-start gap-4 flex-1 pr-4">
+                  <div
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                      openIndex === index
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-gray-100 text-gray-500 group-hover:bg-emerald-50 group-hover:text-emerald-600"
+                    }`}
+                  >
+                    <span className="font-bold text-sm">{index + 1}</span>
+                  </div>
+                  <span
+                    className={`text-base md:text-lg font-semibold transition-colors duration-200 ${
+                      openIndex === index
+                        ? "text-emerald-700"
+                        : "text-gray-800 group-hover:text-emerald-600"
+                    }`}
+                  >
+                    {faq.question}
+                  </span>
+                </div>
+                <div
+                  className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 ${
+                    openIndex === index
+                      ? "bg-emerald-100 rotate-180"
+                      : "bg-gray-100 group-hover:bg-emerald-50"
+                  }`}
+                >
+                  <IoIosArrowDown
+                    className={`text-xl transition-colors duration-300 ${
+                      openIndex === index ? "text-emerald-600" : "text-gray-500"
+                    }`}
+                  />
                 </div>
               </button>
               {openIndex === index && (
-                <div className="px-6 pb-5 pt-2 border-t border-gray-100">
-                  <p className="text-gray-700 leading-relaxed">
-                    {faq.answer}
-                  </p>
+                <div className="px-6 pb-6 pt-2 bg-gradient-to-br from-emerald-50/50 to-teal-50/30 border-t border-emerald-100">
+                  <div className="pl-14">
+                    <p className="text-gray-700 leading-relaxed text-base">
+                      {faq.answer}
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
           ))}
         </div>
 
-        {/* Additional Help Section */}
-        <div className="mt-12 p-6 bg-cyan-50 border border-cyan-200 rounded-lg">
-          <h2 className="text-xl font-semibold text-gray-800 mb-3">Still have questions?</h2>
-          <p className="text-gray-700 mb-4">
-            If you can't find the answer you're looking for, please contact our support team for assistance.
-          </p>
-          <button className="px-6 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition font-medium">
-            Contact Support
-          </button>
+        {/* Support Section */}
+        <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-8 shadow-xl">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center">
+                <HiOutlineSupport className="text-4xl text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-2">
+                  Still have questions?
+                </h2>
+                <p className="text-emerald-50 text-base">
+                  Our support team is here to help you 24/7
+                </p>
+              </div>
+            </div>
+            <button className="px-8 py-3 bg-white text-emerald-700 rounded-xl hover:bg-emerald-50 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 whitespace-nowrap">
+              Contact Support
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -3,7 +3,7 @@ import CateringService from "../../models/Services/Catering&FoodsSchema.js";
 // Controller to add catering service
 export async function AddCateringService(req, res) {
   try {
-    const { role, id } =  req.provider // From verifyToken middleware
+    const { role, id } = req.provider // From verifyToken middleware
 
     // 🔐 Only provider can add
     if (role !== "provider") {
@@ -14,7 +14,7 @@ export async function AddCateringService(req, res) {
     }
 
     // Destructure basic service info
-    const { companyName, ownerName, contactNumber, location, packages } =
+    const { companyName, ownerName, contactNumber, location, packages, category } =
       req.body;
 
     // Validate packages
@@ -58,6 +58,7 @@ export async function AddCateringService(req, res) {
       location,
       packages: parsedPackages,
       images: imagePaths,
+      category,
     });
 
     return res.status(201).json({
@@ -126,7 +127,7 @@ export async function fetchCateringById(req, res) {
 export async function editCatering(req, res) {
   try {
     const { id } = req.params;
-    const { role } = req.user; // From verifyToken middleware
+    const { role } = req.provider; // From protectProvider middleware
 
     // 🔐 Only provider can add
     if (role !== "provider") {
@@ -188,7 +189,7 @@ export async function DeleteCatering(req, res) {
   try {
     const { id } = req.params;
 
-    const { role } = req.user; // From verifyToken middleware
+    const { role } = req.provider; // From protectProvider middleware
 
     // 🔐 Only provider can add
     if (role !== "provider") {

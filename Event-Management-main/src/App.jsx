@@ -31,12 +31,18 @@ import UserFAQ from './pages/user/UserFAQ'
 
 import MyServices from './pages/serviceProvider/MyServices'
 import EditPhotography from './pages/serviceProvider/EditPhotography'
+import EditAuditorium from './pages/serviceProvider/EditAuditorium'
+import EditCatering from './pages/serviceProvider/EditCatering'
+import EditStageDecoration from './pages/serviceProvider/EditStageDecoration'
 import EventShowcasebyCategory from './components/EventShowcasebyCategory'
 import EventDetailsPage from './components/EventDetailsPage'
 import EventBookingPage from './components/EventBookingPage'
 import Payment from './components/Payment'
 import BookingSuccess from './components/BookingSuccess'
 import ScrollToTop from './components/ScrollToTop'
+import Analytics from './pages/admin/Analytics'
+import AdminNotification from './pages/admin/AdminNotification'
+import ProviderNotification from './pages/serviceProvider/ProviderNotification'
 
 const App = () => {
   const { pathname } = useLocation();
@@ -44,10 +50,10 @@ const App = () => {
   // Hide navbar + footer on admin or provider routes
   const hideLayout = pathname.includes("admin") || pathname.includes("provider") || pathname.includes("user");
 
-  const {showUserLogin, user} = useAppContext()
+  const { showUserLogin, user } = useAppContext()
   return (
-   <div>
-    <ScrollToTop/>
+    <div>
+      <ScrollToTop />
       {/* Navbar */}
       {!hideLayout && <Navbar />}
 
@@ -61,17 +67,17 @@ const App = () => {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contactus />} />
           {/* <Route path="/services/:category" element={<ServicesCategory />} /> */}
-          <Route path="/services/:category" element={<EventShowcasebyCategory />}/>
-          <Route path="/service/:category/:id" element={<EventDetailsPage />}/>
-          <Route path="/book/:category/:serviceId" element={<EventBookingPage />}/>
-          <Route path="/payment" element={<Payment />}/>
-          <Route path="/booking-success" element={<BookingSuccess />}/>
-          <Route path="/myprofile" element={<MyProfile />}/>
+          <Route path="/services/:category" element={<EventShowcasebyCategory />} />
+          <Route path="/service/:category/:id" element={<EventDetailsPage />} />
+          <Route path="/book/:category/:serviceId" element={<EventBookingPage />} />
+          <Route path="/payment" element={<Payment />} />
+          <Route path="/booking-success" element={<BookingSuccess />} />
+          <Route path="/myprofile" element={<MyProfile />} />
 
           {/* user Route */}
 
-          <Route path="/user-dashboard" element={<UserLayout/>}>
-            <Route index element={<UserBookings/>} />
+          <Route path="/user-dashboard" element={<UserLayout />}>
+            <Route index element={<UserBookings />} />
             <Route path="faq" element={<UserFAQ />} />
             {/* <Route path="userbookings" element={} /> */}
             {/* <Route path="manage-user" element={<ManageUser />} />
@@ -86,6 +92,8 @@ const App = () => {
             <Route path="manage-user" element={<ManageUser />} />
             <Route path="settlement-history" element={<SettlementHistory />} />
             <Route path="security" element={<Security />} />
+            <Route path="analytics" element={<Analytics />} />
+            <Route path="notification" element={<AdminNotification />} />
           </Route>
 
           {/* Provider Routes */}
@@ -93,23 +101,27 @@ const App = () => {
             <Route index element={<ProviderDashboard />} />
             <Route path="add-service" element={<AddService />} />
             <Route path="add-service/auditorium" element={<AuditoriumCreation />} />
-            <Route path="add-service/catering" element={<CateringCreation/>} />
-            <Route path="add-service/stage-decoration" element={<StageDecorationCreation/>} />
-            <Route path="add-service/photography" element={<PhotographyCreation/>} />
+            <Route path="add-service/catering" element={<CateringCreation />} />
+            <Route path="add-service/stage-decoration" element={<StageDecorationCreation />} />
+            <Route path="add-service/photography" element={<PhotographyCreation />} />
             <Route path="booking-details" element={<Bookingdetails />} />
             <Route path="review" element={<Review />} />
             <Route path="faq" element={<FAQ />} />
+            <Route path="notification" element={<ProviderNotification/>} />
             <Route path="/provider/my-services" element={<MyServices />} />
             <Route path="/provider/edit/photography/:serviceId" element={<EditPhotography />} />
+            <Route path="/provider/edit/auditorium/:serviceId" element={<EditAuditorium />} />
+            <Route path="/provider/edit/catering/:serviceId" element={<EditCatering />} />
+            <Route path="/provider/edit/stage-decoration/:serviceId" element={<EditStageDecoration />} />
           </Route>
         </Routes>
 
         {/* Footer only on non-admin & non-provider pages */}
         {user && (
-  <>
-    
-  </>
-)}
+          <>
+
+          </>
+        )}
         {!hideLayout && <Footer />}
       </div>
     </div>

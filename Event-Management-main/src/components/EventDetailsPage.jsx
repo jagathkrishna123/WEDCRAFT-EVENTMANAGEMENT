@@ -1,12 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import {
-  auditoriumServices,
-  cateringServices,
-  decorationServices,
-  photographyServices,
-} from "../constants/data";
+import { useAppContext } from "../context/AppContext";
+// removed legacy dummy data imports
 import {
   IoLocationOutline,
   IoPeopleOutline,
@@ -25,23 +21,18 @@ import {
 const EventDetailsPage = () => {
   const { category, id } = useParams();
   const navigate = useNavigate();
+  const { user, isAdmin } = useAppContext();
   const [service, setService] = useState(null);
   const [auditoriumPricing, setAuditoriumPricing] = useState(""); // 'daily' or 'hourly'
   // console.log(category, id, "cate");
   console.log(service, "service123");
 
-  console.log(auditoriumPricing,"pricing");
-  
-  
-  
+  console.log(auditoriumPricing, "pricing");
 
-  // Combine all services
-  const allServices = [
-    ...auditoriumServices,
-    ...cateringServices,
-    ...decorationServices,
-    ...photographyServices,
-  ];
+
+
+
+  // Combine all services - legacy dummy data removed
   useEffect(() => {
     const fetchService = async () => {
       try {
@@ -49,13 +40,13 @@ const EventDetailsPage = () => {
         let url = "";
 
         if (category === "auditorium") {
-          url = `/auditorium/${id}`;
+          url = `/fetchAuditoriumById/${id}`;
         } else if (category === "catering") {
-          url = `/catering/${id}`;
+          url = `/fetchCateringById/${id}`;
         } else if (category === "photography") {
-          url = `/photography/${id}`;
+          url = `/fetchPhotographyById/${id}`;
         } else if (category === "stage-decoration") {
-          url = `/stage-decoration/${id}`;
+          url = `/fetchDecerationById/${id}`;
         } else {
           console.log("Invalid category");
           return;
@@ -149,7 +140,7 @@ const EventDetailsPage = () => {
             className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
           >
             <IoChevronBack className="w-5 h-5" />
-            Back to Servicesx
+            Back to Service
           </button>
         </div>
       </div>
@@ -161,17 +152,15 @@ const EventDetailsPage = () => {
             {/* Image Gallery */}
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
               <div className="aspect-video relative">
-                 <img
-                      src={`${API_BASE_URL}/${service.images[0]
-                        .replace("public\\", "")
-                        .replace(/\\/g, "/")}`}
-                      alt={
-                        service.auditoriumName ||
-                        service.companyName ||
-                        service.studioName
-                      }
-                      className="w-full h-full object-cover rounded-lg rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                    />
+                <img
+                  src={service.images?.[0] ? `${API_BASE_URL.replace("/api", "")}/${service.images[0].replace(/\\/g, "/").replace("public/", "")}` : "/placeholder.jpg"}
+                  alt={
+                    service.auditoriumName ||
+                    service.companyName ||
+                    service.studioName
+                  }
+                  className="w-full h-full object-cover rounded-lg rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                />
                 <div
                   className={`absolute top-4 right-4 bg-gradient-to-r ${categoryInfo.color} text-white px-3 py-1 rounded-full text-sm font-semibold`}
                 >
@@ -181,12 +170,10 @@ const EventDetailsPage = () => {
               {service.images && service.images.length > 1 && (
                 <div className="p-4">
                   <div className="grid grid-cols-1 gap-2">
-                    <img  
-                      src={`${API_BASE_URL}/${service.images[1]
-                        .replace("public\\", "")
-                        .replace(/\\/g, "/")}`}
+                    <img
+                      src={service.images?.[1] ? `${API_BASE_URL.replace("/api", "")}/${service.images[1].replace(/\\/g, "/").replace("public/", "")}` : "/placeholder.jpg"}
                       alt={
-                        service.auditoriumName || 
+                        service.auditoriumName ||
                         service.companyName ||
                         service.studioName
                       }
@@ -194,7 +181,7 @@ const EventDetailsPage = () => {
                     />
                   </div>
                 </div>
-              )}  
+              )}
             </div>
 
             {/* Basic Information */}
@@ -203,7 +190,7 @@ const EventDetailsPage = () => {
                 {service.auditoriumName ||
                   service.companyName ||
                   service.studioName}
-                  
+
               </h1>
 
               <div className="space-y-3 mb-6">
@@ -276,21 +263,19 @@ const EventDetailsPage = () => {
                     <div className="flex gap-2">
                       <button
                         onClick={() => setAuditoriumPricing("daily")}
-                        className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-all ${
-                          auditoriumPricing === "daily"
-                            ? "bg-green-500 text-white shadow-md"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        }`}
+                        className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-all ${auditoriumPricing === "daily"
+                          ? "bg-green-500 text-white shadow-md"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }`}
                       >
                         Daily
                       </button>
                       <button
                         onClick={() => setAuditoriumPricing("hourly")}
-                        className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-all ${
-                          auditoriumPricing === "hourly"
-                            ? "bg-blue-500 text-white shadow-md"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        }`}
+                        className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-all ${auditoriumPricing === "hourly"
+                          ? "bg-blue-500 text-white shadow-md"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }`}
                       >
                         Hourly
                       </button>
@@ -364,13 +349,12 @@ const EventDetailsPage = () => {
                               {pkg.description}
                             </p>
                             <span
-                              className={`inline-block mt-2 px-2 py-1 rounded-full text-xs font-semibold ${
-                                pkg.foodType === "veg"
-                                  ? "bg-green-100 text-green-700"
-                                  : pkg.foodType === "non-veg"
-                                    ? "bg-red-100 text-red-700"
-                                    : "bg-blue-100 text-blue-700"
-                              }`}
+                              className={`inline-block mt-2 px-2 py-1 rounded-full text-xs font-semibold ${pkg.foodType === "veg"
+                                ? "bg-green-100 text-green-700"
+                                : pkg.foodType === "non-veg"
+                                  ? "bg-red-100 text-red-700"
+                                  : "bg-blue-100 text-blue-700"
+                                }`}
                             >
                               {pkg.foodType === "both"
                                 ? "Veg & Non-Veg"
@@ -439,13 +423,12 @@ const EventDetailsPage = () => {
                     {service.packages?.map((pkg) => (
                       <div
                         key={pkg.id}
-                        className={`border rounded-lg p-4 hover:border-pink-300 transition-colors ${
-                          pkg.category === "Luxury"
-                            ? "border-yellow-200 bg-yellow-50"
-                            : pkg.category === "Premium"
-                              ? "border-blue-200 bg-blue-50"
-                              : "border-gray-200 bg-gray-50"
-                        }`}
+                        className={`border rounded-lg p-4 hover:border-pink-300 transition-colors ${pkg.category === "Luxury"
+                          ? "border-yellow-200 bg-yellow-50"
+                          : pkg.category === "Premium"
+                            ? "border-blue-200 bg-blue-50"
+                            : "border-gray-200 bg-gray-50"
+                          }`}
                       >
                         <div className="flex justify-between items-start mb-3">
                           <div>
@@ -457,13 +440,12 @@ const EventDetailsPage = () => {
                             </p>
                           </div>
                           <span
-                            className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                              pkg.category === "Luxury"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : pkg.category === "Premium"
-                                  ? "bg-blue-100 text-blue-700"
-                                  : "bg-gray-100 text-gray-700"
-                            }`}
+                            className={`px-2 py-1 rounded-full text-xs font-semibold ${pkg.category === "Luxury"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : pkg.category === "Premium"
+                                ? "bg-blue-100 text-blue-700"
+                                : "bg-gray-100 text-gray-700"
+                              }`}
                           >
                             {pkg.category}
                           </span>
@@ -484,12 +466,23 @@ const EventDetailsPage = () => {
             {/* Booking Button */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <button
+                disabled={user?.role === "provider" || isAdmin}
                 onClick={handleBookNow}
-                className={`w-full bg-gradient-to-r ${categoryInfo.color} text-white py-4 px-6 rounded-xl font-bold text-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center gap-2`}
+                className={`w-full bg-gradient-to-r ${user?.role === "provider" || isAdmin
+                  ? "from-gray-400 to-gray-500 cursor-not-allowed opacity-75"
+                  : categoryInfo.color
+                  } text-white py-4 px-6 rounded-xl font-bold text-lg hover:shadow-xl transition-all duration-300 transform ${!(user?.role === "provider" || isAdmin) && "hover:scale-[1.02]"
+                  } flex items-center justify-center gap-2`}
               >
                 <IoCalendarOutline className="w-6 h-6" />
-                Book This Service
+                {user?.role === "provider" || isAdmin ? "Booking Restricted" : "Book This Service"}
               </button>
+              {(user?.role === "provider" || isAdmin) && (
+                <p className="text-center text-sm text-rose-500 font-medium mt-3 flex items-center justify-center gap-1">
+                  <IoStarOutline className="w-4 h-4" />
+                  {isAdmin ? "Admin accounts cannot book services" : "Service providers cannot book other services"}
+                </p>
+              )}
               <p className="text-center text-sm text-gray-500 mt-3">
                 Instant booking • Secure payment • 24/7 support
               </p>

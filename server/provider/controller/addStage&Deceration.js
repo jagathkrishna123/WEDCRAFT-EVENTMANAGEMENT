@@ -19,10 +19,11 @@ export const AddDecorationService = async (req, res) => {
       phone,
       description,
       packages, // JSON string
+      category,
     } = req.body;
 
-   
-    
+
+
 
     /* ---------- Basic Validation ---------- */
     if (!companyName || !address || !location || !phone) {
@@ -99,7 +100,7 @@ export const AddDecorationService = async (req, res) => {
     }
 
     // 👉 Store clean public paths
-     const imagePaths = req.files?.map((file) => file.path) || [];
+    const imagePaths = req.files?.map((file) => file.path) || [];
 
     /* ---------- Create Service ---------- */
     const service = await DecorationService.create({
@@ -111,6 +112,7 @@ export const AddDecorationService = async (req, res) => {
       description,
       decorations: parsedDecorations,
       images: imagePaths,
+      category,
     });
 
     return res.status(201).json({
@@ -133,7 +135,7 @@ export const fetchDecorationServices = async (req, res) => {
   try {
     const services = await DecorationService.find();
 
-    
+
 
     return res.status(200).json({
       success: true,
@@ -152,8 +154,8 @@ export const fetchDecorationServices = async (req, res) => {
 export const fetchDecorationServiceById = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(id,"audi");
-    
+    console.log(id, "audi");
+
 
     // Fetch decoration service by ID
     const service = await DecorationService.findById(id);
@@ -182,7 +184,7 @@ export const fetchDecorationServiceById = async (req, res) => {
  */
 export const editDecorationService = async (req, res) => {
   try {
-    const { role } = req.user;
+    const { role } = req.provider;
 
     // Only providers
     if (role !== "provider") {
@@ -257,7 +259,7 @@ export const editDecorationService = async (req, res) => {
  */
 export const deleteDecorationService = async (req, res) => {
   try {
-    const { role } = req.user;
+    const { role } = req.provider;
 
     // Only providers
     if (role !== "provider") {

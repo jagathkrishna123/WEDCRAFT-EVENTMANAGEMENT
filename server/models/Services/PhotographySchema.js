@@ -9,7 +9,7 @@ const photographyPackageSchema = new mongoose.Schema(
       trim: true,
     },
 
-     description: {
+    description: {
       type: String,
       trim: true,
     },
@@ -86,6 +86,11 @@ const PhotographyServiceSchema = new mongoose.Schema(
         type: String,
       },
     ],
+    category: {
+      type: String,
+      required: true,
+      default: "photography",
+    },
   },
   { timestamps: true }
 );

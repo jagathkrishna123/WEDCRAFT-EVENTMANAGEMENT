@@ -37,7 +37,7 @@ const DecorationServiceSchema = new mongoose.Schema(
 
     images: [
       {
-        type: String, 
+        type: String,
         required: true,
       },
     ],
@@ -45,6 +45,11 @@ const DecorationServiceSchema = new mongoose.Schema(
     decorations: {
       type: [decorationPackageSchema],
       validate: [(v) => v.length > 0, "At least one package is required"],
+    },
+    category: {
+      type: String,
+      required: true,
+      default: "stage-decoration",
     },
   },
   { timestamps: true }

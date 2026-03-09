@@ -14,13 +14,20 @@ export const protectProvider = async (req, res, next) => {
 
     const token = authHeader.split(" ")[1];
 
+    if (!token || token === "null" || token === "undefined") {
+      return res.status(401).json({
+        success: false,
+        message: "Not authorized, invalid token",
+      });
+    }
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     const provider = await Provider.findById(decoded.id).select("-password");
 
     if (!provider || provider.role !== "provider") {
-      
-        
+
+
       return res.status(403).json({
         success: false,
         message: "Access denied. Provider only.",

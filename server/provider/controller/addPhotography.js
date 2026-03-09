@@ -2,7 +2,7 @@ import photographyPackageSchema from "../../models/Services/PhotographySchema.js
 
 export async function AddPhotographyService(req, res) {
   try {
-    const { role, id } =  req.provider
+    const { role, id } = req.provider
 
     // 🔐 Provider-only access
     if (role !== "provider") {
@@ -21,6 +21,7 @@ export async function AddPhotographyService(req, res) {
       description,
       serviceTypes,
       packages,
+      category,
     } = req.body;
 
     // ❗ Required field check
@@ -75,6 +76,7 @@ export async function AddPhotographyService(req, res) {
       serviceTypes: parsedServiceTypes,
       packages: parsedPackages,
       images: imagePaths,
+      category,
     });
 
     return res.status(201).json({
@@ -95,8 +97,8 @@ export async function AddPhotographyService(req, res) {
 export async function fetchPhotographyServices(req, res) {
   try {
     const services = await photographyPackageSchema.find();
-  
-    
+
+
 
     return res.status(200).json({
       success: true,
@@ -142,7 +144,7 @@ export async function fetchPhotographyById(req, res) {
 export async function editPhotographyService(req, res) {
   try {
     const { id } = req.params;
-    const { role } = req.user;
+    const { role } = req.provider;
 
     // Only providers can edit
     if (role !== "provider") {
@@ -237,7 +239,7 @@ export async function editPhotographyService(req, res) {
 export async function deletePhotographyService(req, res) {
   try {
     const { id } = req.params;
-    const { role } = req.user;
+    const { role } = req.provider;
 
     if (role !== "provider") {
       return res.status(403).json({

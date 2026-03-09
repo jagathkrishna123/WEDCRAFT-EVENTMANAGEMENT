@@ -11,11 +11,19 @@ import {
   IoCloseCircleOutline,
   IoHourglassOutline,
   IoEyeOutline,
-  IoPrintOutline
+  IoPrintOutline,
+  IoStar,
+  IoStarOutline
 } from 'react-icons/io5';
 
+import axios from 'axios';
+import { useAppContext } from '../../context/AppContext';
+
 const UserBookings = () => {
+  const { user } = useAppContext();
   const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filteredBookings, setFilteredBookings] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -24,417 +32,39 @@ const UserBookings = () => {
   const [bookingToCancel, setBookingToCancel] = useState(null);
   const [cancelReason, setCancelReason] = useState('');
   const [customReason, setCustomReason] = useState('');
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [bookingToRate, setBookingToRate] = useState(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
-    // Load bookings from localStorage
-    const savedBookings = localStorage.getItem('userBookings');
-    if (savedBookings) {
-      const parsedBookings = JSON.parse(savedBookings);
-      setBookings(parsedBookings);
-      setFilteredBookings(parsedBookings);
-    } else {
-      // Use dummy data for UI testing
-      const dummyBookings = [
-        {
-          bookingId: 'WC12345678',
-          serviceName: 'Grand Palace Auditorium',
-          category: 'auditorium',
-          auditoriumPricing: 'daily',
-          bookingData: {
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            phone: '+91 98765 43210',
-            eventDate: '2026-01-17',
-            eventTime: '10:00',
-            guests: 200,
-            hours: 8,
-            specialRequests: 'Need sound system and stage setup'
-          },
-          totalPrice: 50000,
-          bookingDate: new Date('2024-11-15').toISOString(),
-          status: 'confirmed'
-        },
-        {
-          bookingId: 'WC23456789',
-          serviceName: 'Delicious Catering Services',
-          category: 'catering',
-          selectedPackage: {
-            packageName: 'Premium Package',
-            name: 'Premium Package',
-            pricePerPerson: 500,
-            description: 'Full course meal with dessert',
-            foodType: 'both'
-          },
-          bookingData: {
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            phone: '+91 98765 43210',
-            eventDate: new Date().toISOString().split('T')[0], // Today
-            eventTime: '12:00',
-            guests: 150,
-            hours: 0,
-            specialRequests: 'Vegetarian options for 50 guests'
-          },
-          totalPrice: 75000,
-          bookingDate: new Date('2024-11-20').toISOString(),
-          status: 'confirmed'
-        },
-        {
-          bookingId: 'WC34567890',
-          serviceName: 'Capture Moments Photography',
-          category: 'photography',
-          selectedPackage: {
-            packageName: 'Full Day Package',
-            name: 'Full Day Package',
-            pricePerHour: 3000,
-            description: '8 hours coverage with album'
-          },
-          bookingData: {
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            phone: '+91 98765 43210',
-            eventDate: '2025-12-30',
-            eventTime: '09:00',
-            guests: 0,
-            hours: 8,
-            specialRequests: 'Need drone photography for outdoor shots'
-          },
-          totalPrice: 24000,
-          bookingDate: new Date('2024-11-18').toISOString(),
-          status: 'confirmed'
-        },
-        {
-          bookingId: 'WC45678901',
-          serviceName: 'Elegant Stage Decorations',
-          category: 'stage-decoration',
-          selectedPackage: {
-            packageName: 'Luxury Package',
-            name: 'Luxury Package',
-            title: 'Luxury Package',
-            pricePerDay: 35000,
-            description: 'Premium floral arrangements and lighting',
-            category: 'Luxury'
-          },
-          bookingData: {
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            phone: '+91 98765 43210',
-            eventDate: '2025-12-20',
-            eventTime: '18:00',
-            guests: 0,
-            hours: 0,
-            specialRequests: 'Red and gold theme with fresh flowers'
-          },
-          totalPrice: 35000,
-          bookingDate: new Date('2024-11-10').toISOString(),
-          status: 'confirmed'
-        },
-        {
-          bookingId: 'WC56789012',
-          serviceName: 'Royal Venue Auditorium',
-          category: 'auditorium',
-          auditoriumPricing: 'hourly',
-          bookingData: {
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            phone: '+91 98765 43210',
-            eventDate: '2024-11-10', // Past date
-            eventTime: '14:00',
-            guests: 100,
-            hours: 4,
-            specialRequests: 'Conference setup required'
-          },
-          totalPrice: 12000,
-          bookingDate: new Date('2024-10-25').toISOString(),
-          status: 'confirmed'
-        },
-        {
-          bookingId: 'WC67890123',
-          serviceName: 'Tasty Treats Catering',
-          category: 'catering',
-          selectedPackage: {
-            packageName: 'Standard Package',
-            name: 'Standard Package',
-            pricePerPerson: 350,
-            description: 'Buffet style service',
-            foodType: 'veg'
-          },
-          bookingData: {
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            phone: '+91 98765 43210',
-            eventDate: '2025-01-15',
-            eventTime: '19:00',
-            guests: 80,
-            hours: 0,
-            specialRequests: 'Jain food options needed'
-          },
-          totalPrice: 28000,
-          bookingDate: new Date('2024-11-22').toISOString(),
-          status: 'confirmed'
-        },
-        {
-          bookingId: 'WC78901234',
-          serviceName: 'Wedding Photography Pro',
-          category: 'photography',
-          selectedPackage: {
-            packageName: 'Wedding Package',
-            name: 'Wedding Package',
-            pricePerHour: 5000,
-            description: 'Complete wedding coverage with video'
-          },
-          bookingData: {
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            phone: '+91 98765 43210',
-            eventDate: '2025-02-14',
-            eventTime: '08:00',
-            guests: 0,
-            hours: 12,
-            specialRequests: 'Need candid photography and video editing'
-          },
-          totalPrice: 60000,
-          bookingDate: new Date('2024-11-25').toISOString(),
-          status: 'confirmed'
-        },
-        {
-          bookingId: 'WC89012345',
-          serviceName: 'Grand Ballroom Auditorium',
-          category: 'auditorium',
-          auditoriumPricing: 'daily',
-          bookingData: {
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            phone: '+91 98765 43210',
-            eventDate: '2025-03-08',
-            eventTime: '16:00',
-            guests: 300,
-            hours: 8,
-            specialRequests: 'Need podium and wireless microphones'
-          },
-          totalPrice: 75000,
-          bookingDate: new Date('2024-11-28').toISOString(),
-          status: 'confirmed'
-        },
-        {
-          bookingId: 'WC90123456',
-          serviceName: 'Festive Decorations Co.',
-          category: 'stage-decoration',
-          selectedPackage: {
-            packageName: 'Premium Package',
-            name: 'Premium Package',
-            title: 'Premium Package',
-            pricePerDay: 25000,
-            description: 'Complete stage and hall decoration',
-            category: 'Premium'
-          },
-          bookingData: {
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            phone: '+91 98765 43210',
-            eventDate: '2025-04-20',
-            eventTime: '17:00',
-            guests: 0,
-            hours: 0,
-            specialRequests: 'Spring theme with seasonal flowers'
-          },
-          totalPrice: 25000,
-          bookingDate: new Date('2024-12-01').toISOString(),
-          status: 'confirmed'
-        },
-        {
-          bookingId: 'WC01234567',
-          serviceName: 'Celebration Catering Services',
-          category: 'catering',
-          selectedPackage: {
-            packageName: 'Deluxe Package',
-            name: 'Deluxe Package',
-            pricePerPerson: 650,
-            description: 'Multi-course meal with premium desserts',
-            foodType: 'non-veg'
-          },
-          bookingData: {
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            phone: '+91 98765 43210',
-            eventDate: '2025-05-10',
-            eventTime: '20:00',
-            guests: 120,
-            hours: 0,
-            specialRequests: 'Dietary restrictions: 20 vegetarians, 5 gluten-free'
-          },
-          totalPrice: 78000,
-          bookingDate: new Date('2024-12-05').toISOString(),
-          status: 'confirmed'
-        },
-        {
-          bookingId: 'WC12345670',
-          serviceName: 'Corporate Event Venue',
-          category: 'auditorium',
-          auditoriumPricing: 'hourly',
-          bookingData: {
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            phone: '+91 98765 43210',
-            eventDate: '2025-06-15',
-            eventTime: '09:00',
-            guests: 200,
-            hours: 6,
-            specialRequests: 'Projector and screen setup required'
-          },
-          totalPrice: 36000,
-          bookingDate: new Date('2024-12-08').toISOString(),
-          status: 'confirmed'
-        },
-        {
-          bookingId: 'WC23456701',
-          serviceName: 'Artistic Photography Studio',
-          category: 'photography',
-          selectedPackage: {
-            packageName: 'Portrait Package',
-            name: 'Portrait Package',
-            pricePerHour: 2500,
-            description: 'Family portraits and group photos'
-          },
-          bookingData: {
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            phone: '+91 98765 43210',
-            eventDate: '2025-07-25',
-            eventTime: '14:00',
-            guests: 0,
-            hours: 4,
-            specialRequests: 'Family reunion photos with props'
-          },
-          totalPrice: 10000,
-          bookingDate: new Date('2024-12-10').toISOString(),
-          status: 'confirmed'
-        },
-        {
-          bookingId: 'WC34567012',
-          serviceName: 'Elegant Wedding Decor',
-          category: 'stage-decoration',
-          selectedPackage: {
-            packageName: 'Royal Package',
-            name: 'Royal Package',
-            title: 'Royal Package',
-            pricePerDay: 45000,
-            description: 'Complete wedding venue decoration',
-            category: 'Luxury'
-          },
-          bookingData: {
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            phone: '+91 98765 43210',
-            eventDate: '2025-08-30',
-            eventTime: '11:00',
-            guests: 0,
-            hours: 0,
-            specialRequests: 'Traditional Indian wedding theme'
-          },
-          totalPrice: 45000,
-          bookingDate: new Date('2024-12-12').toISOString(),
-          status: 'confirmed'
-        },
-        {
-          bookingId: 'WC45670123',
-          serviceName: 'Gourmet Catering House',
-          category: 'catering',
-          selectedPackage: {
-            packageName: 'Platinum Package',
-            name: 'Platinum Package',
-            pricePerPerson: 800,
-            description: 'Gourmet dining experience with wine pairing',
-            foodType: 'both'
-          },
-          bookingData: {
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            phone: '+91 98765 43210',
-            eventDate: '2025-09-15',
-            eventTime: '19:30',
-            guests: 100,
-            hours: 0,
-            specialRequests: 'Wine pairing for 50 guests, mocktails for others'
-          },
-          totalPrice: 80000,
-          bookingDate: new Date('2026-12-15').toISOString(),
-          status: 'confirmed'
-        },
-        {
-          bookingId: 'WC56701234',
-          serviceName: 'Convention Center',
-          category: 'auditorium',
-          auditoriumPricing: 'daily',
-          bookingData: {
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            phone: '+91 98765 43210',
-            eventDate: '2025-10-22',
-            eventTime: '08:00',
-            guests: 500,
-            hours: 12,
-            specialRequests: 'Full conference setup with multiple rooms'
-          },
-          totalPrice: 150000,
-          bookingDate: new Date('2024-12-18').toISOString(),
-          status: 'confirmed'
-        },
-        {
-          bookingId: 'WC67801235',
-          serviceName: 'Tomorrow Events Photography',
-          category: 'photography',
-          selectedPackage: {
-            packageName: 'Quick Event Package',
-            name: 'Quick Event Package',
-            pricePerHour: 2000,
-            description: '2 hours coverage for small events'
-          },
-          bookingData: {
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            phone: '+91 98765 43210',
-            eventDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Tomorrow
-            eventTime: '16:00',
-            guests: 0,
-            hours: 2,
-            specialRequests: 'Birthday celebration photography'
-          },
-          totalPrice: 4000,
-          bookingDate: new Date().toISOString(),
-          status: 'confirmed'
-        },
-        {
-          bookingId: 'WC78901236',
-          serviceName: 'Holiday Decor Specialists',
-          category: 'stage-decoration',
-          selectedPackage: {
-            packageName: 'Festival Package',
-            name: 'Festival Package',
-            title: 'Festival Package',
-            pricePerDay: 20000,
-            description: 'Festive decorations for special occasions',
-            category: 'Premium'
-          },
-          bookingData: {
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            phone: '+91 98765 43210',
-            eventDate: '2026-01-01',
-            eventTime: '20:00',
-            guests: 0,
-            hours: 0,
-            specialRequests: 'New Year celebration theme'
-          },
-          totalPrice: 20000,
-          bookingDate: new Date('2024-12-20').toISOString(),
-          status: 'confirmed'
+    const fetchBookings = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        const response = await axios.get('/getAllBookings', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (response.data.success) {
+          setBookings(response.data.data);
+          setFilteredBookings(response.data.data);
+        } else {
+          setError('Failed to load bookings');
         }
-      ];
-      setBookings(dummyBookings);
-      setFilteredBookings(dummyBookings);
+      } catch (err) {
+        console.error('Error fetching bookings:', err);
+        setError(err.response?.data?.message || 'Something went wrong while fetching bookings');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchBookings();
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     // Filter bookings based on selected filter
@@ -455,7 +85,7 @@ const UserBookings = () => {
       return 'cancelled';
     }
 
-    const eventDate = new Date(booking.bookingData.eventDate);
+    const eventDate = new Date(booking.eventDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     eventDate.setHours(0, 0, 0, 0);
@@ -534,29 +164,47 @@ const UserBookings = () => {
       return;
     }
 
-    // Update booking status to cancelled
-    const updatedBookings = bookings.map(booking => {
-      if (booking.bookingId === bookingToCancel.bookingId) {
-        return {
-          ...booking,
-          status: 'cancelled',
-          cancellationReason: finalReason,
-          cancelledAt: new Date().toISOString()
-        };
+    // Update booking status to cancelled via API
+    const confirmCancellation = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.put(`/cancel/${bookingToCancel._id}`,
+          { status: 'cancelled' },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (response.data.success || response.status === 200) {
+          const updatedBookings = bookings.map(booking => {
+            if (booking._id === bookingToCancel._id) {
+              return {
+                ...booking,
+                status: 'cancelled',
+                cancellationReason: finalReason,
+                cancelledAt: new Date().toISOString()
+              };
+            }
+            return booking;
+          });
+
+          setBookings(updatedBookings);
+
+          // Reset modal state
+          setShowCancelModal(false);
+          setBookingToCancel(null);
+          setCancelReason('');
+          setCustomReason('');
+
+          alert('Booking has been cancelled successfully. You will receive a confirmation email shortly.');
+        } else {
+          alert('Failed to cancel booking. Please try again.');
+        }
+      } catch (err) {
+        console.error('Error cancelling booking:', err);
+        alert(err.response?.data?.message || 'Error occurred while cancelling. Please try again.');
       }
-      return booking;
-    });
+    };
 
-    setBookings(updatedBookings);
-    localStorage.setItem('userBookings', JSON.stringify(updatedBookings));
-
-    // Reset modal state
-    setShowCancelModal(false);
-    setBookingToCancel(null);
-    setCancelReason('');
-    setCustomReason('');
-
-    alert('Booking has been cancelled successfully. You will receive a confirmation email shortly.');
+    confirmCancellation();
   };
 
 
@@ -565,13 +213,45 @@ const UserBookings = () => {
     setShowDetailsModal(true);
   };
 
+  const handleRateServiceClick = (booking) => {
+    setBookingToRate(booking);
+    setRating(5);
+    setComment('');
+    setShowReviewModal(true);
+  };
+
+  const handleSubmitReview = async () => {
+    try {
+      setSubmittingReview(true);
+      const token = localStorage.getItem('token');
+      const response = await axios.post('/reviews', {
+        bookingId: bookingToRate._id,
+        rating,
+        comment
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        alert('Review submitted successfully!');
+        setShowReviewModal(false);
+        // Mark as reviewed in local state if needed (not strictly required if we just show the button based on status)
+      }
+    } catch (err) {
+      console.error('Error submitting review:', err);
+      alert(err.response?.data?.message || 'Failed to submit review. Please try again.');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'short', 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
   };
 
@@ -595,19 +275,40 @@ const UserBookings = () => {
             <button
               key={filter}
               onClick={() => setSelectedFilter(filter)}
-              className={`px-6 py-2 rounded-lg font-medium transition-all ${
-                selectedFilter === filter
-                  ? 'bg-cyan-600 text-white shadow-md'
-                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-              }`}
+              className={`px-6 py-2 rounded-lg font-medium transition-all ${selectedFilter === filter
+                ? 'bg-cyan-600 text-white shadow-md'
+                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                }`}
             >
               {filter.charAt(0).toUpperCase() + filter.slice(1)}
             </button>
           ))}
         </div>
 
+        {/* Status Messaging */}
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="w-12 h-12 border-4 border-cyan-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-gray-600 font-medium">Loading your bookings...</p>
+          </div>
+        )}
+
+        {error && !loading && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center mb-8">
+            <IoCloseCircleOutline className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-bold text-red-800 mb-2">Error Loading Bookings</h3>
+            <p className="text-red-600 mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+
         {/* Bookings List */}
-        {filteredBookings.length === 0 ? (
+        {!loading && !error && filteredBookings.length === 0 ? (
           <div className="bg-white rounded-xl shadow-lg p-12 text-center">
             <IoCardOutline className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-800 mb-2">No Bookings Found</h3>
@@ -615,19 +316,19 @@ const UserBookings = () => {
               {selectedFilter === 'all'
                 ? "You haven't made any bookings yet. Start booking services for your events!"
                 : selectedFilter === 'cancelled'
-                ? "No cancelled bookings found."
-                : `No ${selectedFilter} bookings found.`}
+                  ? "No cancelled bookings found."
+                  : `No ${selectedFilter} bookings found.`}
             </p>
           </div>
-        ) : (
+        ) : !loading && !error && (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredBookings.map((booking) => {
               const status = getBookingStatus(booking);
               const categoryInfo = getCategoryInfo(booking.category);
-              
+
               return (
                 <div
-                  key={booking.bookingId}
+                  key={booking._id}
                   className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
                 >
                   {/* Status Badge */}
@@ -636,14 +337,14 @@ const UserBookings = () => {
                       {getStatusIcon(status)}
                       <span className="font-semibold capitalize">{status}</span>
                     </div>
-                    <span className="text-xs font-mono">#{booking.bookingId?.slice(-6) || 'N/A'}</span>
+                    <span className="text-xs font-mono">#{booking._id?.slice(-6) || 'N/A'}</span>
                   </div>
 
                   {/* Booking Content */}
                   <div className="p-6">
                     {/* Service Name */}
                     <div className={`mb-4 p-3 rounded-lg bg-gradient-to-r ${categoryInfo.color} text-white`}>
-                      <h3 className="font-bold text-lg">{booking.serviceName}</h3>
+                      <h3 className="font-bold text-lg">{booking.serviceName || `Booking for ${categoryInfo.name}`}</h3>
                       <p className="text-sm opacity-90 capitalize">{categoryInfo.name}</p>
                     </div>
 
@@ -651,22 +352,22 @@ const UserBookings = () => {
                     <div className="space-y-3 mb-4">
                       <div className="flex items-center gap-2 text-sm text-gray-700">
                         <IoCalendarOutline className="w-4 h-4 text-gray-500" />
-                        <span>{formatDate(booking.bookingData.eventDate)}</span>
+                        <span>{formatDate(booking.eventDate)}</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-700">
                         <IoTimeOutline className="w-4 h-4 text-gray-500" />
-                        <span>{formatTime(booking.bookingData.eventTime)}</span>
+                        <span>{formatTime(booking.eventTime)}</span>
                       </div>
-                      {booking.bookingData.guests > 0 && booking.category !== 'auditorium' && (
+                      {booking.guests > 0 && booking.category !== 'auditorium' && (
                         <div className="flex items-center gap-2 text-sm text-gray-700">
                           <IoPersonOutline className="w-4 h-4 text-gray-500" />
-                          <span>{booking.bookingData.guests} guests</span>
+                          <span>{booking.guests} guests</span>
                         </div>
                       )}
                       {booking.category === 'auditorium' && booking.auditoriumPricing === 'hourly' && (
                         <div className="flex items-center gap-2 text-sm text-gray-700">
                           <IoTimeOutline className="w-4 h-4 text-gray-500" />
-                          <span>{booking.bookingData.hours} hours</span>
+                          <span>{booking.hours} hours</span>
                         </div>
                       )}
                     </div>
@@ -676,9 +377,9 @@ const UserBookings = () => {
                       <div className="mb-4 p-2 bg-gray-50 rounded-lg">
                         <p className="text-xs text-gray-600 mb-1">Package</p>
                         <p className="text-sm font-semibold text-gray-800">
-                          {booking.selectedPackage.packageName || 
-                           booking.selectedPackage.name || 
-                           booking.selectedPackage.title}
+                          {booking.selectedPackage.packageName ||
+                            booking.selectedPackage.name ||
+                            booking.selectedPackage.title}
                         </p>
                       </div>
                     )}
@@ -700,6 +401,15 @@ const UserBookings = () => {
                         <IoEyeOutline className="w-4 h-4" />
                         View Details
                       </button>
+                      {status === 'completed' && (
+                        <button
+                          onClick={() => handleRateServiceClick(booking)}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition text-sm font-medium"
+                        >
+                          <IoStar className="w-4 h-4" />
+                          Rate Service
+                        </button>
+                      )}
                       {(status === 'upcoming' || status === 'today') && (
                         <button
                           onClick={() => handleCancelBookingClick(booking)}
@@ -738,7 +448,7 @@ const UserBookings = () => {
                   <div className="bg-gray-50 p-4 rounded-lg space-y-2">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Service Name:</span>
-                      <span className="font-semibold">{selectedBooking.serviceName}</span>
+                      <span className="font-semibold">{selectedBooking.serviceName || selectedBooking.category.replace('-', ' ')}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Category:</span>
@@ -748,9 +458,9 @@ const UserBookings = () => {
                       <div className="flex justify-between">
                         <span className="text-gray-600">Package:</span>
                         <span className="font-semibold">
-                          {selectedBooking.selectedPackage.packageName || 
-                           selectedBooking.selectedPackage.name || 
-                           selectedBooking.selectedPackage.title}
+                          {selectedBooking.selectedPackage.packageName ||
+                            selectedBooking.selectedPackage.name ||
+                            selectedBooking.selectedPackage.title}
                         </span>
                       </div>
                     )}
@@ -769,28 +479,28 @@ const UserBookings = () => {
                   <div className="bg-gray-50 p-4 rounded-lg space-y-2">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Event Date:</span>
-                      <span className="font-semibold">{formatDate(selectedBooking.bookingData.eventDate)}</span>
+                      <span className="font-semibold">{formatDate(selectedBooking.eventDate)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Event Time:</span>
-                      <span className="font-semibold">{formatTime(selectedBooking.bookingData.eventTime)}</span>
+                      <span className="font-semibold">{formatTime(selectedBooking.eventTime)}</span>
                     </div>
-                    {selectedBooking.bookingData.guests > 0 && selectedBooking.category !== 'auditorium' && (
+                    {selectedBooking.guests > 0 && selectedBooking.category !== 'auditorium' && (
                       <div className="flex justify-between">
                         <span className="text-gray-600">Number of Guests:</span>
-                        <span className="font-semibold">{selectedBooking.bookingData.guests}</span>
+                        <span className="font-semibold">{selectedBooking.guests}</span>
                       </div>
                     )}
                     {selectedBooking.category === 'auditorium' && selectedBooking.auditoriumPricing === 'hourly' && (
                       <div className="flex justify-between">
                         <span className="text-gray-600">Duration:</span>
-                        <span className="font-semibold">{selectedBooking.bookingData.hours} hours</span>
+                        <span className="font-semibold">{selectedBooking.hours} hours</span>
                       </div>
                     )}
-                    {selectedBooking.bookingData.specialRequests && (
+                    {selectedBooking.specialRequests && (
                       <div>
                         <span className="text-gray-600">Special Requests:</span>
-                        <p className="font-semibold mt-1">{selectedBooking.bookingData.specialRequests}</p>
+                        <p className="font-semibold mt-1">{selectedBooking.specialRequests}</p>
                       </div>
                     )}
                   </div>
@@ -802,15 +512,15 @@ const UserBookings = () => {
                   <div className="bg-gray-50 p-4 rounded-lg space-y-2">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Name:</span>
-                      <span className="font-semibold">{selectedBooking.bookingData.name}</span>
+                      <span className="font-semibold">{selectedBooking.customerName}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Email:</span>
-                      <span className="font-semibold">{selectedBooking.bookingData.email}</span>
+                      <span className="font-semibold">{selectedBooking.email}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Phone:</span>
-                      <span className="font-semibold">{selectedBooking.bookingData.phone}</span>
+                      <span className="font-semibold">{selectedBooking.phone}</span>
                     </div>
                   </div>
                 </div>
@@ -824,7 +534,7 @@ const UserBookings = () => {
                       <span className="text-2xl font-bold">₹{selectedBooking.totalPrice?.toLocaleString() || '0'}</span>
                     </div>
                     <div className="mt-2 text-sm opacity-90">
-                      Booking ID: {selectedBooking.bookingId || 'N/A'}
+                      Booking ID: {selectedBooking._id || 'N/A'}
                     </div>
                   </div>
                 </div>
@@ -856,7 +566,7 @@ const UserBookings = () => {
               <div className="p-6 border-b border-gray-200">
                 <h2 className="text-2xl font-bold text-gray-800">Cancel Booking</h2>
                 <p className="text-gray-600 mt-1">
-                  Booking ID: {bookingToCancel.bookingId}
+                  Booking ID: {bookingToCancel._id}
                 </p>
               </div>
 
@@ -893,7 +603,7 @@ const UserBookings = () => {
                     </div>
                     <div>
                       <span className="text-gray-600">Event Date:</span>
-                      <p className="font-semibold">{formatDate(bookingToCancel.bookingData.eventDate)}</p>
+                      <p className="font-semibold">{formatDate(bookingToCancel.eventDate)}</p>
                     </div>
                     <div>
                       <span className="text-gray-600">Amount Paid:</span>
@@ -901,7 +611,7 @@ const UserBookings = () => {
                     </div>
                     <div>
                       <span className="text-gray-600">Event Time:</span>
-                      <p className="font-semibold">{formatTime(bookingToCancel.bookingData.eventTime)}</p>
+                      <p className="font-semibold">{formatTime(bookingToCancel.eventTime)}</p>
                     </div>
                   </div>
                 </div>
@@ -990,6 +700,75 @@ const UserBookings = () => {
                   className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Confirm Cancellation
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Review Modal */}
+        {showReviewModal && bookingToRate && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+              <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-800">Rate Service</h2>
+                <button
+                  onClick={() => setShowReviewModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <IoCloseCircleOutline className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                <div className="text-center">
+                  <p className="text-gray-600 mb-4">How was your experience with <span className="font-semibold">{bookingToRate.serviceName}</span>?</p>
+
+                  {/* Star Rating */}
+                  <div className="flex justify-center gap-2 mb-6">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => setRating(s)}
+                        className="transition-transform hover:scale-110 active:scale-95"
+                      >
+                        {s <= rating ? (
+                          <IoStar className="w-10 h-10 text-amber-400" />
+                        ) : (
+                          <IoStarOutline className="w-10 h-10 text-gray-300" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="text-left">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Your Review
+                    </label>
+                    <textarea
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      placeholder="Share your experience (e.g., service quality, staff behavior, etc.)"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none resize-none"
+                      rows={4}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 border-t border-gray-200 flex gap-3">
+                <button
+                  onClick={() => setShowReviewModal(false)}
+                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmitReview}
+                  disabled={!comment.trim() || submittingReview}
+                  className="flex-1 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition font-medium disabled:opacity-50"
+                >
+                  {submittingReview ? 'Submitting...' : 'Submit Review'}
                 </button>
               </div>
             </div>

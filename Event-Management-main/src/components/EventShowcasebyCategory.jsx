@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAppContext } from "../context/AppContext";
 
 import {
   IoLocationOutline,
@@ -20,6 +21,7 @@ const EventShowcasebyCategory = () => {
 
   const { category } = useParams();
   const navigate = useNavigate();
+  const { user, isAdmin, setShowUserLogin } = useAppContext();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("default");
   const [items, setItems] = useState([]);
@@ -77,8 +79,8 @@ const EventShowcasebyCategory = () => {
         let priceA, priceB;
 
         if (category === "auditorium") {
-          priceA = a.pricePerDay || 0;
-          priceB = b.pricePerDay || 0;
+          priceA = a.price || 0;
+          priceB = b.price || 0;
         } else if (category === "catering") {
           priceA = Math.min(
             ...(a.packages?.map((p) => p.pricePerPerson) || [0]),
@@ -90,8 +92,8 @@ const EventShowcasebyCategory = () => {
           priceA = Math.min(...(a.packages?.map((p) => p.pricePerHour) || [0]));
           priceB = Math.min(...(b.packages?.map((p) => p.pricePerHour) || [0]));
         } else if (category === "stage-decoration") {
-          priceA = Math.min(...(a.packages?.map((p) => p.pricePerDay) || [0]));
-          priceB = Math.min(...(b.packages?.map((p) => p.pricePerDay) || [0]));
+          priceA = Math.min(...(a.decorations?.map((p) => p.pricePerDay) || [0]));
+          priceB = Math.min(...(b.decorations?.map((p) => p.pricePerDay) || [0]));
         }
 
         return priceA - priceB;
@@ -101,8 +103,8 @@ const EventShowcasebyCategory = () => {
         let priceA, priceB;
 
         if (category === "auditorium") {
-          priceA = a.pricePerDay || 0;
-          priceB = b.pricePerDay || 0;
+          priceA = a.price || 0;
+          priceB = b.price || 0;
         } else if (category === "catering") {
           priceA = Math.min(
             ...(a.packages?.map((p) => p.pricePerPerson) || [0]),
@@ -114,8 +116,8 @@ const EventShowcasebyCategory = () => {
           priceA = Math.min(...(a.packages?.map((p) => p.pricePerHour) || [0]));
           priceB = Math.min(...(b.packages?.map((p) => p.pricePerHour) || [0]));
         } else if (category === "stage-decoration") {
-          priceA = Math.min(...(a.packages?.map((p) => p.pricePerDay) || [0]));
-          priceB = Math.min(...(b.packages?.map((p) => p.pricePerDay) || [0]));
+          priceA = Math.min(...(a.decorations?.map((p) => p.pricePerDay) || [0]));
+          priceB = Math.min(...(b.decorations?.map((p) => p.pricePerDay) || [0]));
         }
 
         return priceB - priceA;
@@ -123,7 +125,7 @@ const EventShowcasebyCategory = () => {
     }
 
     return services;
-  }, [category, searchTerm, sortBy]);
+  }, [category, searchTerm, sortBy, allServices]);
 
   // Get category display name and icon
   const getCategoryInfo = (category) => {
@@ -251,16 +253,15 @@ const EventShowcasebyCategory = () => {
     if (category === "stage-decoration") {
       return (
         <div className="space-y-3">
-          {item.packages?.slice(0, 2).map((pkg, index) => (
+          {item.decorations?.slice(0, 2).map((pkg, index) => (
             <div
               key={pkg.id}
-              className={`p-3 rounded-lg ${
-                pkg.category === "Luxury"
-                  ? "bg-yellow-50"
-                  : pkg.category === "Premium"
-                    ? "bg-blue-50"
-                    : "bg-gray-50"
-              }`}
+              className={`p-3 rounded-lg ${pkg.category === "Luxury"
+                ? "bg-yellow-50"
+                : pkg.category === "Premium"
+                  ? "bg-blue-50"
+                  : "bg-gray-50"
+                }`}
             >
               <div className="flex justify-between items-start">
                 <div>
@@ -269,13 +270,12 @@ const EventShowcasebyCategory = () => {
                     {pkg.description}
                   </p>
                   <span
-                    className={`text-xs px-2 py-1 rounded-full mt-2 inline-block ${
-                      pkg.category === "Luxury"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : pkg.category === "Premium"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-gray-100 text-gray-700"
-                    }`}
+                    className={`text-xs px-2 py-1 rounded-full mt-2 inline-block ${pkg.category === "Luxury"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : pkg.category === "Premium"
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-gray-100 text-gray-700"
+                      }`}
                   >
                     {pkg.category}
                   </span>
@@ -380,7 +380,7 @@ const EventShowcasebyCategory = () => {
           </div>
         </div>
 
-        {items.length === 0 ? (
+        {filteredServices.length === 0 ? (
           <div className="text-center py-12">
             <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md mx-auto">
               <CategoryIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -399,14 +399,14 @@ const EventShowcasebyCategory = () => {
                   onClick={() => setSearchTerm("")}
                   className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
                 >
-                  Clear Search  
+                  Clear Search
                 </button>
               )}
             </div>
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {items.map((item) => (
+            {filteredServices.map((item) => (
               <div
                 key={item._id}
                 className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group hover:-translate-y-1"
@@ -416,9 +416,9 @@ const EventShowcasebyCategory = () => {
                   <img
                     src={
                       item.images?.[0]
-                        ? `${API_BASE_URL}/${item.images[0]
-                            .replace(/\\/g, "/")
-                            .replace("public/", "")}`
+                        ? `${API_BASE_URL.replace("/api", "")}/${item.images[0]
+                          .replace(/\\/g, "/")
+                          .replace("public/", "")}`
                         : "/placeholder.jpg"
                     }
                     alt={
@@ -461,14 +461,23 @@ const EventShowcasebyCategory = () => {
 
                   {/* Contact/Action Button */}
                   <button
+                    disabled={user?.role === "provider" || isAdmin}
                     onClick={() => {
+                      if (!user) {
+                        setShowUserLogin(true);
+                        return;
+                      }
                       if (item?._id) {
                         navigate(`/service/${category}/${item._id}`);
                       }
                     }}
-                    className={`w-full mt-4 bg-gradient-to-r ${categoryInfo.color} text-white py-3 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02]`}
+                    className={`w-full mt-4 bg-gradient-to-r ${user?.role === "provider" || isAdmin
+                      ? "from-gray-400 to-gray-500 cursor-not-allowed opacity-75"
+                      : categoryInfo.color
+                      } text-white py-3 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 transform ${!(user?.role === "provider" || isAdmin) && "hover:scale-[1.02]"
+                      }`}
                   >
-                    View Details & Books
+                    {user?.role === "provider" || isAdmin ? "Booking Restricted" : "View Details & Book"}
                   </button>
                 </div>
               </div>

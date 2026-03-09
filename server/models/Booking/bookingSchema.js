@@ -56,6 +56,12 @@ const bookingSchema = new mongoose.Schema(
       required: true,
     },
 
+    // 🔥 NEW: Store service name snapshot
+    serviceName: {
+      type: String,
+      required: true,
+    },
+
     selectedPackage: {
       _id: { type: String },
       packageName: { type: String },

@@ -4,7 +4,7 @@ export async function AddAuditorium(req, res) {
   try {
     // 🔹 Get role and provider ID from authenticated user
 
-    const { role, id } =  req.provider
+    const { role, id } = req.provider
 
     // 🔐 Role check
     if (role !== "provider") {
@@ -29,6 +29,7 @@ export async function AddAuditorium(req, res) {
       openingTime,
       closingTime,
       cancellationPolicy,
+      category,
     } = req.body;
 
     // 🔹 Check if images were uploaded
@@ -57,6 +58,7 @@ export async function AddAuditorium(req, res) {
       closingTime,
       cancellationPolicy,
       images: imagePaths,
+      category,
     });
 
     return res.status(201).json({
@@ -97,15 +99,15 @@ export async function fetchAuditorium(req, res) {
 export async function fetchAuditoriumById(req, res) {
   try {
     const { id } = req.params;
-    console.log(id,"paramss");
+    console.log(id, "paramss");
     console.log("krhwefdd");
-    
-    
+
+
 
     // Fetch auditorium by ID
     const auditorium = await AuditoriumSchema.findById(id);
-   
-    
+
+
 
     if (!auditorium) {
       return res.status(404).json({
@@ -132,7 +134,7 @@ export async function fetchAuditoriumById(req, res) {
 export async function editAuditorium(req, res) {
   console.log("edit");
 
-  const { role } = req.user; // From verifyToken middleware
+  const { role } = req.provider; // From protectProvider middleware
 
   // 🔐 Only provider can add
   if (role !== "provider") {
@@ -204,7 +206,7 @@ export async function editAuditorium(req, res) {
 
 
 export async function DeleteAuditorium(req, res) {
-  const { role } = req.user; // From verifyToken middleware
+  const { role } = req.provider; // From protectProvider middleware
 
   // 🔐 Only provider can add
   if (role !== "provider") {

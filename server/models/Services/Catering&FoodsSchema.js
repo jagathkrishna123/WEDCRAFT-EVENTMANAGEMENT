@@ -27,6 +27,11 @@ const CateringServiceSchema = new mongoose.Schema(
         type: String, // store file path or URL
       },
     ],
+    category: {
+      type: String,
+      required: true,
+      default: "catering",
+    },
   },
   { timestamps: true }
 );

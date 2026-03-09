@@ -7,6 +7,7 @@ import {
   fetchAuditoriumById,
 } from "../controller/addAuditorium.js";
 import { protectProvider } from "../../middleware/ProtectProvider.js";
+import { sendToAdmin, getProviderNotifications } from "../controller/notificationController.js";
 import { verifyToken } from "../../middleware/verifyToken.js";
 import {
   AddCateringService,
@@ -30,6 +31,9 @@ import {
   deletePhotographyService,
   fetchPhotographyById,
 } from "../controller/addPhotography.js";
+import { getProviderServices } from "../controller/getProviderServices.js";
+import { getProviderBookings } from "../controller/getProviderBookings.js";
+import { getDashboardStats } from "../controller/getDashboardStats.js";
 
 const router = express.Router();
 
@@ -41,8 +45,8 @@ router.post(
   AddAuditorium,
 );
 
-router.get("/fecthAuditorium", verifyToken, fetchAuditorium);
-router.get("/auditorium/:id", verifyToken, fetchAuditoriumById);
+router.get("/fecthAuditorium", fetchAuditorium);
+router.get("/fetchAuditoriumById/:id", fetchAuditoriumById);
 
 router.put(
   "/editAuditorium/:id",
@@ -61,13 +65,13 @@ router.post(
   upload.array("images", 10), // <--- MUST use .array("images") for multiple files
   AddCateringService,
 );
-router.get("/fetchCatering", verifyToken, fetchCatering);
-router.get("/catering/:id", verifyToken, fetchCateringById);
+router.get("/fetchCatering", fetchCatering);
+router.get("/fetchCateringById/:id", fetchCateringById);
 
 router.put(
   "/editCatering/:id",
   protectProvider,
-  upload.array("images", 10), // <--- MUST use .array("images") for multiple files
+  upload.array("images", 10),
   editCatering,
 );
 router.delete("/delete-catering/:id", protectProvider, DeleteCatering);
@@ -81,13 +85,13 @@ router.post(
   AddDecorationService,
 );
 
-router.get("/fetchDeceration", verifyToken, fetchDecorationServices);
-router.get("/stage-decoration/:id", verifyToken, fetchDecorationServiceById);
+router.get("/fetchDeceration", fetchDecorationServices);
+router.get("/fetchDecerationById/:id", fetchDecorationServiceById);
 
 router.put(
   "/editDeceration/:id",
   protectProvider,
-  upload.array("images", 10), // <--- MUST use .array("images") for multiple files
+  upload.array("images", 10),
   editDecorationService,
 );
 
@@ -106,13 +110,13 @@ router.post(
   AddPhotographyService,
 );
 
-router.get("/fetchPhotography", verifyToken, fetchPhotographyServices);
-router.get("/photography/:id", verifyToken, fetchPhotographyById);
+router.get("/fetchPhotography", fetchPhotographyServices);
+router.get("/fetchPhotographyById/:id", fetchPhotographyById);
 
 router.put(
   "/editPhotography/:id",
   protectProvider,
-  upload.array("images", 10), // <--- MUST use .array("images") for multiple files
+  upload.array("images", 10),
   editPhotographyService,
 );
 
@@ -121,5 +125,14 @@ router.delete(
   protectProvider,
   deletePhotographyService,
 );
+
+// Unified Provider Services
+router.get("/provider-services", protectProvider, getProviderServices);
+router.get("/provider-bookings", protectProvider, getProviderBookings);
+router.get("/dashboard-stats", protectProvider, getDashboardStats);
+
+// Notification routes for provider
+router.post("/message/send", protectProvider, sendToAdmin);
+router.get("/messages", protectProvider, getProviderNotifications);
 
 export default router;

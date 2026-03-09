@@ -4,8 +4,8 @@ export function verifyToken(req, res, next) {
   try {
     const authHeader = req.headers.authorization;
 
-   
-    
+
+
 
 
     // Check header
@@ -17,10 +17,12 @@ export function verifyToken(req, res, next) {
 
     // Extract token
     const token = authHeader.split(" ")[1];
- 
-    
-   
-    
+
+    if (!token || token === "null" || token === "undefined") {
+      return res.status(401).json({
+        message: "Access denied. Invalid or missing token",
+      });
+    }
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);

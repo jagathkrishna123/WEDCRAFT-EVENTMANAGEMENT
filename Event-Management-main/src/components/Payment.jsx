@@ -30,6 +30,7 @@ const Payment = () => {
     name: "",
   });
   const [upiId, setUpiId] = useState("");
+  const [selectedUpiApp, setSelectedUpiApp] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
@@ -72,7 +73,7 @@ const Payment = () => {
       // Redirect after success
       setTimeout(() => {
         navigate("/booking-success", {
-          state: { booking: response.data.booking },
+          state: { bookingDetails },
         });
       }, 1500);
     } catch (error) {
@@ -108,7 +109,7 @@ const Payment = () => {
       // Redirect after success
       setTimeout(() => {
         navigate("/booking-success", {
-          state: { booking: response.data.booking },
+          state: { bookingDetails },
         });
       }, 1500);
     } catch (error) {
@@ -118,6 +119,40 @@ const Payment = () => {
       );
       setIsProcessing(false);
       alert(error.response?.data?.message || "UPI Payment Failed");
+    }
+  };
+
+  const handleCODPayment = async () => {
+    try {
+      setIsProcessing(true);
+      const token = localStorage.getItem("token");
+
+      const response = await axios.post(
+        "/createBooking",
+        {
+          ...bookingDetails,
+          paymentMethod: "cod",
+          totalPrice: bookingDetails.totalPrice + 500, // Include convenience fee
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setIsProcessing(false);
+      setPaymentSuccess(true);
+
+      setTimeout(() => {
+        navigate("/booking-success", {
+          state: { bookingDetails: { ...bookingDetails, totalPrice: bookingDetails.totalPrice + 500 } },
+        });
+      }, 1500);
+    } catch (error) {
+      console.error("COD Payment failed:", error.response?.data || error.message);
+      setIsProcessing(true);
+      alert(error.response?.data?.message || "COD Booking Failed");
     }
   };
 
@@ -193,11 +228,10 @@ const Payment = () => {
                     <button
                       key={method.id}
                       onClick={() => setPaymentMethod(method.id)}
-                      className={`p-4 border-2 rounded-xl transition-all duration-200 flex items-center gap-3 ${
-                        paymentMethod === method.id
-                          ? "border-blue-500 bg-blue-50 text-blue-700"
-                          : "border-gray-200 hover:border-gray-300 text-gray-700"
-                      }`}
+                      className={`p-4 border-2 rounded-xl transition-all duration-200 flex items-center gap-3 ${paymentMethod === method.id
+                        ? "border-blue-500 bg-blue-50 text-blue-700"
+                        : "border-gray-200 hover:border-gray-300 text-gray-700"
+                        }`}
                     >
                       <IconComponent className="w-6 h-6" />
                       <span className="font-medium">{method.name}</span>
@@ -322,23 +356,39 @@ const Payment = () => {
                     />
                   </div>
 
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm text-gray-600 mb-2">
+                  <div className="bg-gray-50/80 backdrop-blur-sm border border-gray-100 p-5 rounded-2xl shadow-inner">
+                    <p className="text-sm font-semibold text-gray-700 mb-4 opacity-75">
                       Popular UPI Apps:
                     </p>
-                    <div className="flex gap-2">
-                      <button className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors">
-                        GPay
-                      </button>
-                      <button className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors">
-                        PhonePe
-                      </button>
-                      <button className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors">
-                        Paytm
-                      </button>
-                      <button className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors">
-                        BHIM
-                      </button>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {[
+                        { id: "gpay", name: "GPay", color: "text-blue-600", border: "hover:border-blue-400", suffix: "@okaxis" },
+                        { id: "phonepe", name: "PhonePe", color: "text-purple-600", border: "hover:border-purple-400", suffix: "@ybl" },
+                        { id: "paytm", name: "Paytm", color: "text-sky-500", border: "hover:border-sky-400", suffix: "@paytm" },
+                        { id: "bhim", name: "BHIM", color: "text-orange-600", border: "hover:border-orange-400", suffix: "@upi" }
+                      ].map((app) => (
+                        <button
+                          key={app.id}
+                          onClick={() => {
+                            setSelectedUpiApp(app.id);
+                            // Suggest common suffix if empty
+                            if (!upiId || upiId === "@upi" || upiId === "@okaxis" || upiId === "@ybl" || upiId === "@paytm") {
+                              setUpiId(app.suffix);
+                            }
+                          }}
+                          className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all duration-300 ${selectedUpiApp === app.id
+                            ? `bg-white border-blue-500 shadow-md transform scale-[1.05]`
+                            : `bg-white/50 border-transparent hover:bg-white hover:shadow-sm ${app.border}`
+                            }`}
+                        >
+                          <span className={`text-sm font-bold ${app.color}`}>
+                            {app.name}
+                          </span>
+                          {selectedUpiApp === app.id && (
+                            <div className="mt-1 w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" />
+                          )}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
@@ -355,7 +405,10 @@ const Payment = () => {
                     ) : (
                       <>
                         <IoWalletOutline className="w-5 h-5" />
-                        Pay ₹{bookingDetails.totalPrice.toLocaleString()}
+                        {selectedUpiApp
+                          ? `Pay via ${selectedUpiApp.charAt(0).toUpperCase() + selectedUpiApp.slice(1)} - ₹${bookingDetails.totalPrice.toLocaleString()}`
+                          : `Pay ₹${bookingDetails.totalPrice.toLocaleString()}`
+                        }
                       </>
                     )}
                   </button>
@@ -445,18 +498,7 @@ const Payment = () => {
                   </div>
 
                   <button
-                    onClick={() => {
-                      setIsProcessing(true);
-                      setTimeout(() => {
-                        setIsProcessing(false);
-                        setPaymentSuccess(true);
-                        setTimeout(() => {
-                          navigate("/booking-success", {
-                            state: { bookingDetails },
-                          });
-                        }, 2000);
-                      }, 2000);
-                    }}
+                    onClick={handleCODPayment}
                     disabled={isProcessing}
                     className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 px-6 rounded-xl font-bold text-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
