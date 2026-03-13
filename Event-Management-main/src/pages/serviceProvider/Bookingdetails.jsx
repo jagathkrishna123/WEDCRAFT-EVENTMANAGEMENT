@@ -42,9 +42,14 @@ const Bookingdetails = () => {
   }, []);
 
   const getTotalRevenue = () => {
-    return bookings
-      .filter(booking => booking.status !== "cancelled")
-      .reduce((sum, booking) => sum + (booking.totalPrice || 0), 0);
+    return bookings.reduce((sum, booking) => {
+      if (booking.status === "confirmed" || booking.status === "completed") {
+        return sum + (booking.totalPrice || 0);
+      } else if (booking.status === "cancelled") {
+        return sum + (booking.cancellationFee || 0);
+      }
+      return sum;
+    }, 0);
   };
 
   if (loading) return <Loader />;
@@ -176,6 +181,11 @@ const Bookingdetails = () => {
                         <div className={`text-lg font-bold ${booking.status === "cancelled" ? "text-gray-400 line-through" : "text-green-600"}`}>
                           ₹{booking.totalPrice?.toLocaleString()}
                         </div>
+                        {booking.status === 'cancelled' && booking.cancellationFee > 0 && (
+                          <div className="text-xs text-amber-600 font-medium mt-1">
+                            Fee: ₹{booking.cancellationFee.toLocaleString()}
+                          </div>
+                        )}
                         {booking.guests > 0 && (
                           <div className="text-xs text-gray-500">
                             {booking.guests} guests
@@ -185,10 +195,10 @@ const Bookingdetails = () => {
 
                       <td className="p-4">
                         <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${booking.status === "cancelled"
-                            ? "bg-red-100 text-red-600"
-                            : booking.status === "confirmed"
-                              ? "bg-green-100 text-green-600"
-                              : "bg-blue-100 text-blue-600"
+                          ? "bg-red-100 text-red-600"
+                          : booking.status === "confirmed"
+                            ? "bg-green-100 text-green-600"
+                            : "bg-blue-100 text-blue-600"
                           }`}>
                           {booking.status}
                         </span>

@@ -45,8 +45,14 @@ const SettlementHistory = () => {
 
   // Calculate metrics
   const totalRevenue = bookings
-    .filter((b) => b.status === "confirmed" || b.status === "completed")
-    .reduce((sum, b) => sum + (b.totalPrice || 0), 0);
+    .reduce((sum, b) => {
+      if (b.status === "confirmed" || b.status === "completed") {
+        return sum + (b.totalPrice || 0);
+      } else if (b.status === "cancelled") {
+        return sum + (b.cancellationFee || 0);
+      }
+      return sum;
+    }, 0);
 
   const pendingRevenue = bookings
     .filter((b) => b.status === "pending")
@@ -247,9 +253,21 @@ const SettlementHistory = () => {
                   </td>
 
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-1 text-gray-800 font-bold">
-                      <IndianRupee className="w-4 h-4 text-gray-500" />
-                      {b.totalPrice ? b.totalPrice.toLocaleString('en-IN') : '0'}
+                    <div className="flex flex-col gap-1.5">
+                      <div className={`flex items-center gap-1 font-bold ${b.status === 'cancelled' ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
+                        <IndianRupee className="w-4 h-4 text-gray-400" />
+                        {b.totalPrice ? b.totalPrice.toLocaleString('en-IN') : '0'}
+                      </div>
+                      {b.status === 'cancelled' && b.cancellationFee > 0 && (
+                        <div className="flex items-center gap-1 text-xs text-amber-700 font-medium bg-amber-50 px-2 py-0.5 rounded border border-amber-200 w-fit" title="Retained cancellation fee">
+                          Fee: ₹{b.cancellationFee.toLocaleString('en-IN')}
+                        </div>
+                      )}
+                      {b.status === 'cancelled' && b.refundAmount > 0 && (
+                        <div className="text-xs text-blue-600 font-medium">
+                          Refund: ₹{b.refundAmount.toLocaleString('en-IN')}
+                        </div>
+                      )}
                     </div>
                   </td>
 

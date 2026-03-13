@@ -144,6 +144,35 @@ const UserBookings = () => {
     }
   };
 
+  const getRefundDetails = (booking) => {
+    if (!booking) return { refundPercentage: 0, refundAmount: 0, cancellationFee: 0, daysUntilEvent: 0 };
+
+    const eventDate = new Date(booking.eventDate);
+    eventDate.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const diffTime = eventDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    let refundPercentage = 0;
+    if (diffDays >= 7) {
+      refundPercentage = 100;
+    } else if (diffDays >= 3) {
+      refundPercentage = 50;
+    } else if (diffDays >= 0) {
+      refundPercentage = 0;
+    } else {
+      refundPercentage = 0; // Past event
+    }
+
+    const totalPrice = booking.totalPrice || 0;
+    const refundAmount = (totalPrice * refundPercentage) / 100;
+    const cancellationFee = totalPrice - refundAmount;
+
+    return { refundPercentage, refundAmount, cancellationFee, daysUntilEvent: diffDays };
+  };
+
   const handleCancelBookingClick = (booking) => {
     setBookingToCancel(booking);
     setCancelReason('');
@@ -164,12 +193,19 @@ const UserBookings = () => {
       return;
     }
 
+    const { refundAmount, cancellationFee } = getRefundDetails(bookingToCancel);
+
     // Update booking status to cancelled via API
     const confirmCancellation = async () => {
       try {
         const token = localStorage.getItem('token');
         const response = await axios.put(`/cancel/${bookingToCancel._id}`,
-          { status: 'cancelled' },
+          {
+            status: 'cancelled',
+            refundAmount,
+            cancellationFee,
+            cancellationReason: finalReason
+          },
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -180,6 +216,8 @@ const UserBookings = () => {
                 ...booking,
                 status: 'cancelled',
                 cancellationReason: finalReason,
+                refundAmount,
+                cancellationFee,
                 cancelledAt: new Date().toISOString()
               };
             }
@@ -615,6 +653,34 @@ const UserBookings = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Refund Details */}
+                {bookingToCancel && (() => {
+                  const details = getRefundDetails(bookingToCancel);
+                  return (
+                    <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                      <h4 className="font-semibold text-blue-800 mb-2">Refund Calculation</h4>
+                      <div className="space-y-2 text-sm text-blue-900">
+                        <div className="flex justify-between">
+                          <span>Days until event:</span>
+                          <span className="font-medium">{details.daysUntilEvent >= 0 ? details.daysUntilEvent : 0} days</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Applicable Refund Policy:</span>
+                          <span className="font-medium">{details.refundPercentage}% Refund</span>
+                        </div>
+                        <div className="flex justify-between border-t border-blue-200 pt-2 font-bold text-base">
+                          <span>Estimated Refund Amount:</span>
+                          <span className="text-green-700">₹{details.refundAmount.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between text-xs text-blue-700 font-medium">
+                          <span>Cancellation Fee Retained:</span>
+                          <span>₹{details.cancellationFee.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Cancellation Reason */}
                 <div>

@@ -243,12 +243,16 @@ export const getBookingById = async (req, res) => {
 export const updateBookingStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, refundAmount, cancellationFee, cancellationReason } = req.body;
 
     const booking = await Booking.findById(id);
     if (!booking) return res.status(404).json({ message: "Booking not found" });
 
     booking.status = status;
+    if (refundAmount !== undefined) booking.refundAmount = refundAmount;
+    if (cancellationFee !== undefined) booking.cancellationFee = cancellationFee;
+    if (cancellationReason !== undefined) booking.cancellationReason = cancellationReason;
+
     const updatedBooking = await booking.save();
 
     res
